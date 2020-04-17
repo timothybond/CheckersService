@@ -44,7 +44,7 @@ namespace Checkers
         /// </summary>
         public static Location FromString(string s)
         {
-            const string verticals = "12345678";
+            const string verticals = "87654321";
 
             if (s == null)
             {

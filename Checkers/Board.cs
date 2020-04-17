@@ -25,8 +25,8 @@ namespace Checkers
             this.CurrentPlayer = firstPlayer ?? Color.Red;
 
             // Default piece locations:
-            // Black on the top (high index),
-            // Red on the bottom (low index),
+            // Black on the bottom (high index),
+            // Red on the top (low index),
             // even spaces filled.
             for (var redRow = 0; redRow < 3; redRow++)
             {
