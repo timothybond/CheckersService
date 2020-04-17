@@ -7,11 +7,6 @@ namespace Checkers
     {
         public Piece(PieceType type, Color color)
         {
-            if (color == Color.None || type == PieceType.None)
-            {
-                throw new ArgumentException($"Neither enum value may be 'None' (got '{type}', '{color}').");
-            }
-
             this.Type = type;
             this.Color = color;
         }
