@@ -191,6 +191,25 @@ namespace Checkers.UnitTests
         }
 
         [Test]
+        [TestCase(Color.Black, 1, 1, 0, 0)]
+        [TestCase(Color.Black, 5, 1, 6, 0)]
+        [TestCase(Color.Red, 2, 6, 1, 7)]
+        [TestCase(Color.Red, 6, 6, 7, 7)]
+        public void Apply_KingsPieceAtFinalRow(Color color, int fromX, int fromY, int toX, int toY)
+        {
+            var from = new Location(fromX, fromY);
+            var to = new Location(toX, toY);
+            var move = new Move(color, from, to);
+            var board = GetEmptyBoard(color);
+            board[from] = new Piece(PieceType.Piece, color);
+
+            Assert.AreEqual(true, board.Apply(move));
+
+            Assert.IsNull(board[from]);
+            Assert.AreEqual(PieceType.King, board[to]?.Type);
+        }
+
+        [Test]
         public void ApplyMany_AllowsMultiCapture()
         {
             var board = GetEmptyBoard(Color.Red);

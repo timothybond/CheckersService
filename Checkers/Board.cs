@@ -161,6 +161,21 @@ namespace Checkers
                 this[middle] = null;
             }
 
+            if ((move.To.Y == 0 && move.Color == Color.Black) ||
+                (move.To.Y == 7 && move.Color == Color.Red))
+            {
+                var piece = this[move.To];
+
+                if (piece != null)
+                {
+                    piece.Type = PieceType.King;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Board state corrupted somehow.");
+                }
+            }
+
             if (nextPlayer)
             {
                 this.SetNextPlayer();
