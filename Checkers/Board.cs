@@ -246,7 +246,7 @@ namespace Checkers
             var sb = new StringBuilder();
 
             sb.Append("-----------------");
-            for (var y = 7; y >= 0; y--)
+            for (var y = 0; y < 8; y++)
             {
                 sb.AppendLine();
                 for (var x = 0; x < 8; x++)

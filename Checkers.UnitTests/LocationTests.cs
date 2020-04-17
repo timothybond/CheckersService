@@ -10,10 +10,10 @@ namespace Checkers.UnitTests
         }
 
         [Test]
-        [TestCase("a1", 0, 0)]
-        [TestCase("a5", 0, 4)]
-        [TestCase("d3", 3, 2)]
-        [TestCase("h8", 7, 7)]
+        [TestCase("a1", 0, 7)]
+        [TestCase("a5", 0, 3)]
+        [TestCase("d3", 3, 5)]
+        [TestCase("h8", 7, 0)]
         public void FromString_GetsCorrectValues(string s, int x, int y)
         {
             var location = Location.FromString(s);
