@@ -55,6 +55,7 @@ namespace Checkers.Service.Controllers
                 }
 
                 game.CurrentPlayer = board.CurrentPlayer;
+                game.ValidMoves = board.GetValidMoves().Select(m => new GameMove(m)).ToList();
                 game.ActivePiece = board.ActivePiece?.ToString();
 
                 return game;
