@@ -278,9 +278,14 @@ namespace Checkers
                 return false;
             }
 
+            if (this[move.To] != null)
+            {
+                return false;
+            }
+
             if (xOffset == 1)
             {
-                return this[move.To] == null;
+                return true;
             }
             
             if (xOffset != 2)

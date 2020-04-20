@@ -100,6 +100,25 @@ namespace Checkers.UnitTests
         }
 
         [Test]
+        [TestCase(Color.Black, 3, 5, 1, 3)]
+        [TestCase(Color.Black, 3, 5, 5, 3)]
+        [TestCase(Color.Red, 4, 2, 2, 4)]
+        [TestCase(Color.Red, 4, 2, 6, 4)]
+        public void IsValid_PreventsBlocked(Color color, int fromX, int fromY, int toX, int toY)
+        {
+            var from = new Location(fromX, fromY);
+            var to = new Location(toX, toY);
+            var move = new Move(color, from, to);
+            var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
+            var board = GetEmptyBoard(color);
+            board[from] = new Piece(PieceType.Piece, color);
+            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[to] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+
+            Assert.AreEqual(false, board.IsValid(move));
+        }
+
+        [Test]
         [TestCase(Color.Black, 3, 5, 1, 3, 3, 1)]
         [TestCase(Color.Black, 3, 5, 5, 3, 7, 1)]
         [TestCase(Color.Red, 4, 2, 2, 4, 4, 6)]
