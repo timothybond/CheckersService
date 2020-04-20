@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Checkers.Service.Controllers
 {
@@ -36,17 +37,13 @@ namespace Checkers.Service.Controllers
 
         private string GetUniqueId()
         {
-            var bytes = new byte[8];
-            var random = new Random();
-            random.NextBytes(bytes);
-            var id = Convert.ToBase64String(bytes);
+            var id = Guid.NewGuid().ToString();
 
             var tries = 0;
 
             while (cache.TryGetValue(id, out _))
             {
-                random.NextBytes(bytes);
-                id = Convert.ToBase64String(bytes);
+                id = Guid.NewGuid().ToString();
                 tries++;
 
                 if (tries > 100)
