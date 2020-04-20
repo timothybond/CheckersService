@@ -34,7 +34,7 @@ namespace Checkers
         public override string ToString()
         {
             // Using standard chess notation, a-h across the top, 1-8 up the side.
-            var vertical = Y + 1;
+            var vertical = 8 - Y;
 
             return $"{horizontals[X]}{vertical}";
         }
