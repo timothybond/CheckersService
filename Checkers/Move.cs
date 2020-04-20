@@ -45,5 +45,20 @@ namespace Checkers
         {
             return $"({From} {To})";
         }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is Move other)
+            {
+                return this.Color == other.Color && this.From.Equals(other.From) && this.To.Equals(other.To);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return (this.From.GetHashCode() << 7) | (this.To.GetHashCode() << 4) | (int)this.Color;
+        }
     }
 }
