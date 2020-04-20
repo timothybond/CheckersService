@@ -52,47 +52,38 @@ class Move {
 class Board {
     constructor() {
         this.maxId = 0;
-        this.pieces = [
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-        ];
+        this.pieces = [];
+        for (let i = 0; i < 64; i++) {
+            this.pieces.push(null);
+        }
         this.nextPlayer = Color.Red;
+    }
+    GetPiece(x, y) {
+        return this.pieces[y * 8 + x];
+    }
+    SetPiece(x, y, piece) {
+        this.pieces[y * 8 + x] = piece;
     }
     ResetBoard(color = Color.Red) {
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
-                let piece = this.pieces[x][y];
+                let piece = this.GetPiece(x, y);
                 if (piece != null) {
                     this.DeleteSvg(piece);
                 }
             }
         }
-        this.pieces = [
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-        ];
+        this.pieces = [];
+        for (let i = 0; i < 64; i++) {
+            this.pieces.push(null);
+        }
         for (let y = 0; y < 3; y++) {
             for (let x = 0; x < 8; x++) {
                 if ((x + y) % 2 == 0) {
                     let newPiece = new Piece(Color.Red, PieceType.Piece, this.PieceId(this.maxId++));
-                    this.pieces[x][y] = newPiece;
+                    this.SetPiece(x, y, newPiece);
                     this.AddPieceSvg(x, y, newPiece.color, newPiece.svgId);
                     this.maxId++;
-                }
-                else {
-                    this.pieces[x][y] = null;
                 }
             }
         }
@@ -100,11 +91,9 @@ class Board {
             for (let x = 0; x < 8; x++) {
                 if ((x + y) % 2 == 0) {
                     let newPiece = new Piece(Color.Black, PieceType.Piece, this.PieceId(this.maxId++));
+                    this.SetPiece(x, y, newPiece);
                     this.AddPieceSvg(x, y, newPiece.color, newPiece.svgId);
                     this.maxId++;
-                }
-                else {
-                    this.pieces[x][y] = null;
                 }
             }
         }
@@ -135,18 +124,18 @@ class Board {
         svgRoot.appendChild(subSvg);
     }
     ApplyMove(move, animate = false) {
-        let piece = this.pieces[move.fromX][move.fromY];
+        let piece = this.GetPiece(move.fromX, move.fromY);
         if (!piece) {
             return;
         }
-        this.pieces[move.toX][move.toY] = piece;
-        this.pieces[move.fromX][move.fromY] = null;
+        this.SetPiece(move.toX, move.toY, piece);
+        this.SetPiece(move.fromX, move.fromY, null);
         if (Math.abs(move.toX - move.fromX) == 2) {
             var middleX = (move.fromX + move.toX) / 2;
             var middleY = (move.fromY + move.toY) / 2;
-            let jumpedPiece = this.pieces[middleX][middleY];
+            let jumpedPiece = this.GetPiece(middleX, middleY);
             this.DeleteSvg(jumpedPiece);
-            this.pieces[middleX][middleY] = null;
+            this.SetPiece(middleX, middleY, null);
         }
         if ((move.toY == 0 && piece.color == Color.Black) ||
             (move.toY == 7 && piece.color == Color.Red)) {
@@ -182,38 +171,6 @@ class Board {
             //var lineVertical = 
         }
     }
-    IsOpen(x, y) {
-        if (x < 0 || x > 7 || y < 0 || y > 7) {
-            return false;
-        }
-        return this.pieces[x][y] == null;
-    }
-    GetValidMoves(x, y) {
-        let validMoves = new Array();
-        let offsets = new Array();
-        if (userColor == Color.Red || this.pieces[x][y].type == PieceType.King) {
-            offsets.push([1, 1], [-1, 1]);
-        }
-        if (userColor == Color.Black || this.pieces[x][y].type == PieceType.King) {
-            offsets.push([1, -1], [-1, -1]);
-        }
-        for (let offset of offsets) {
-            let newX = x + offset[0];
-            let newY = y + offset[1];
-            if (this.IsOpen(newX, newY)) {
-                validMoves.push([newX, newY]);
-            }
-            else if (this.IsOpen(newX + offset[0], newY + offset[1])) {
-                // Check if this is a piece we can jump
-                let middlePiece = this.pieces[newX][newY];
-                if (middlePiece != null && middlePiece.color != userColor) {
-                    validMoves.push([newX + offset[0], newY + offset[1]]);
-                }
-            }
-        }
-        // TODO: Fix this
-        return validMoves;
-    }
 }
 let gameId = '';
 let gameState = GameState.NoGame;
@@ -224,6 +181,7 @@ let userColor = Color.Red;
 let selectedPiece;
 selectedPiece = null;
 let validMoves = new Array();
+let validMovesByPiece = new Map();
 let validMoveIndicators = new Array();
 let selectedPieceIndicator;
 selectedPieceIndicator = null;
@@ -246,11 +204,10 @@ function StartGame() {
                 document.getElementById('setup').style.display = 'none';
                 document.getElementById('main').style.display = 'inline';
                 let json = yield response.json();
-                gameId = json.id;
-                currentMove = 0;
                 gameState = GameState.InProgress;
-                userState = UserState.Ready;
+                currentMove = 0;
                 board.ResetBoard();
+                UpdateGameState(json);
             }
             else {
                 document.getElementById('startGameFailure').style.display = 'inline';
@@ -262,10 +219,38 @@ function StartGame() {
         document.getElementById('startGameFailure').innerText = `Game creation failed: ${err}`;
     });
 }
+function UpdateGameState(json) {
+    gameId = json.id;
+    if (json.currentPlayer == userColor) {
+        userState = UserState.Ready;
+        validMovesByPiece = new Map();
+        for (let validMove of json.validMoves) {
+            let fromStr = validMove.from;
+            let toStr = validMove.to;
+            let from = FromLocationString(fromStr);
+            let to = FromLocationString(toStr);
+            let fromIndex = from[0] + from[1] * 8;
+            if (!validMovesByPiece.has(fromIndex)) {
+                validMovesByPiece.set(fromIndex, new Array());
+            }
+            validMovesByPiece.get(fromIndex).push(to);
+        }
+    }
+    else {
+        userState = UserState.OtherPlayerMove;
+    }
+}
 function LocationString(x, y) {
     const vertical = '87654321';
     const horizontal = 'abcdefgh';
     return `${horizontal[x]}${vertical[y]}`;
+}
+function FromLocationString(s) {
+    const vertical = '87654321';
+    const horizontal = 'abcdefgh';
+    let x = horizontal.indexOf(s[0]);
+    let y = vertical.indexOf(s[1]);
+    return [x, y];
 }
 function IsValidMove(x, y) {
     for (let [moveX, moveY] of validMoves) {
@@ -283,7 +268,7 @@ function OnClick(event) {
         case UserState.Processing:
             return;
         case UserState.Ready:
-            let piece = board.pieces[x][y];
+            let piece = board.GetPiece(x, y);
             if ((piece === null || piece === void 0 ? void 0 : piece.color) == userColor) {
                 SelectPiece(x, y);
             }
@@ -304,11 +289,11 @@ function OnClick(event) {
                     },
                     body: JSON.stringify({
                         'gameId': gameId,
-                        'moves': [{
-                                'from': LocationString(move.fromX, move.fromY),
-                                'to': LocationString(move.toX, move.toY),
-                                'color': userColor
-                            }]
+                        'move': {
+                            'from': LocationString(move.fromX, move.fromY),
+                            'to': LocationString(move.toX, move.toY),
+                            'color': userColor
+                        }
                     })
                 }).then(function onSuccess(response) {
                     if (response.ok) {
@@ -332,7 +317,10 @@ function OnClick(event) {
 function SelectPiece(x, y) {
     userState = UserState.PieceSelected;
     selectedPiece = [x, y];
-    validMoves = board.GetValidMoves(x, y);
+    validMoves = validMovesByPiece.get(selectedPiece[1] * 8 + selectedPiece[0]);
+    if (!validMoves) {
+        validMoves = new Array();
+    }
     // TODO: Add valid move indicators
 }
 document.getElementById('startGameButton').addEventListener('click', StartGame);

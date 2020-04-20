@@ -8,6 +8,13 @@
             this.To = string.Empty;
         }
 
+        public GameMove(Move move)
+        {
+            this.Color = move.Color;
+            this.From = move.From.ToString();
+            this.To = move.To.ToString();
+        }
+
         public Color Color { get; set; }
 
         public string From { get; set; }
