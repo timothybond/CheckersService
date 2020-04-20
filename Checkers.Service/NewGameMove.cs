@@ -5,11 +5,13 @@
         public NewGameMove()
         {
             this.GameId = string.Empty;
-            this.Moves = new GameMove[] { };
         }
 
         public string GameId { get; set; }
 
-        public GameMove[] Moves { get; set; }
+        /// <summary>
+        /// The move to make, or <c>null</c> to pass (only valid after a capture that would allow another capture).
+        /// </summary>
+        public GameMove? Move { get; set; }
     }
 }

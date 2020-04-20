@@ -19,7 +19,7 @@ namespace Checkers.Service.Controllers
         [HttpGet]
         public ActionResult<Game> Get()
         {
-            var game = new Game { Id = GetUniqueId(), StartTime = DateTime.Now} ;
+            var game = new Game { Id = GetUniqueId(), StartTime = DateTime.Now, CurrentPlayer = Color.Red } ;
 
             cache.Set(
                 game.Id,

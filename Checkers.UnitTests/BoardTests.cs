@@ -100,6 +100,56 @@ namespace Checkers.UnitTests
         }
 
         [Test]
+        [TestCase(Color.Black, 3, 5, 1, 3, 3, 1)]
+        [TestCase(Color.Black, 3, 5, 5, 3, 7, 1)]
+        [TestCase(Color.Red, 4, 2, 2, 4, 4, 6)]
+        [TestCase(Color.Red, 4, 2, 6, 4, 4, 6)]
+        public void IsValid_AllowsChainedCapture(Color color, int fromX, int fromY, int toX, int toY, int finalX, int finalY)
+        {
+            var from = new Location(fromX, fromY);
+            var to = new Location(toX, toY);
+            var final = new Location(finalX, finalY);
+            var initalMove = new Move(color, from, to);
+            var finalMove = new Move(color, to, final);
+            
+            var board = GetEmptyBoard(color);
+            board[from] = new Piece(PieceType.Piece, color);
+
+            var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
+            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            middle = new Location((toX + finalX) / 2, (toY + finalY) / 2);
+            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+
+            board.Apply(initalMove);
+
+            Assert.AreEqual(true, board.IsValid(finalMove));
+        }
+
+        [Test]
+        [TestCase(Color.Black, 3, 5, 1, 3, 2, 2)]
+        [TestCase(Color.Black, 3, 5, 5, 3, 6, 2)]
+        [TestCase(Color.Red, 4, 2, 2, 4, 3, 5)]
+        [TestCase(Color.Red, 4, 2, 6, 4, 5, 5)]
+        public void IsValid_DoesNotAllowChainedNonCapture(Color color, int fromX, int fromY, int toX, int toY, int finalX, int finalY)
+        {
+            var from = new Location(fromX, fromY);
+            var to = new Location(toX, toY);
+            var final = new Location(finalX, finalY);
+            var initalMove = new Move(color, from, to);
+            var finalMove = new Move(color, to, final);
+
+            var board = GetEmptyBoard(color);
+            board[from] = new Piece(PieceType.Piece, color);
+
+            var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
+            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+
+            board.Apply(initalMove);
+
+            Assert.AreEqual(false, board.IsValid(finalMove));
+        }
+
+        [Test]
         [TestCase(Color.Black, 1, 5, 2, 4)]
         [TestCase(Color.Black, 1, 5, 0, 4)]
         [TestCase(Color.Red, 4, 2, 3, 3)]
@@ -171,6 +221,80 @@ namespace Checkers.UnitTests
         }
 
         [Test]
+        [TestCase(Color.Black, 1, 5, 2, 4)]
+        [TestCase(Color.Black, 1, 5, 0, 4)]
+        [TestCase(Color.Red, 4, 2, 3, 3)]
+        [TestCase(Color.Red, 4, 2, 5, 3)]
+        [TestCase(Color.Black, 1, 5, 2, 6)]
+        [TestCase(Color.Black, 1, 5, 0, 6)]
+        [TestCase(Color.Red, 4, 2, 3, 1)]
+        [TestCase(Color.Red, 4, 2, 5, 1)]
+        public void Apply_SetsNextPlayer(Color color, int fromX, int fromY, int toX, int toY)
+        {
+            var from = new Location(fromX, fromY);
+            var to = new Location(toX, toY);
+            var move = new Move(color, from, to);
+            var board = GetEmptyBoard(color);
+            board[from] = new Piece(PieceType.King, color);
+
+            board.Apply(move);
+
+            Assert.AreNotEqual(color, board.CurrentPlayer);
+        }
+
+        [Test]
+        [TestCase(Color.Black, 3, 5, 1, 3, 3, 1)]
+        [TestCase(Color.Black, 3, 5, 5, 3, 7, 1)]
+        [TestCase(Color.Red, 4, 2, 2, 4, 4, 6)]
+        [TestCase(Color.Red, 4, 2, 6, 4, 4, 6)]
+        public void Apply_DoesNotSetNextPlayerAfterPossibleChainedCapture(Color color, int fromX, int fromY, int toX, int toY, int finalX, int finalY)
+        {
+            var from = new Location(fromX, fromY);
+            var to = new Location(toX, toY);
+            var final = new Location(finalX, finalY);
+            var initalMove = new Move(color, from, to);
+            var finalMove = new Move(color, to, final);
+
+            var board = GetEmptyBoard(color);
+            board[from] = new Piece(PieceType.Piece, color);
+
+            var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
+            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            middle = new Location((toX + finalX) / 2, (toY + finalY) / 2);
+            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+
+            board.Apply(initalMove);
+
+            Assert.AreEqual(color, board.CurrentPlayer);
+        }
+
+        [Test]
+        [TestCase(Color.Black, 3, 5, 1, 3, 3, 1)]
+        [TestCase(Color.Black, 3, 5, 5, 3, 7, 1)]
+        [TestCase(Color.Red, 4, 2, 2, 4, 4, 6)]
+        [TestCase(Color.Red, 4, 2, 6, 4, 4, 6)]
+        public void Apply_SetsActivePieceAfterPossibleChainedCapture(Color color, int fromX, int fromY, int toX, int toY, int finalX, int finalY)
+        {
+            var from = new Location(fromX, fromY);
+            var to = new Location(toX, toY);
+            var final = new Location(finalX, finalY);
+            var initalMove = new Move(color, from, to);
+            var finalMove = new Move(color, to, final);
+
+            var board = GetEmptyBoard(color);
+            board[from] = new Piece(PieceType.Piece, color);
+
+            var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
+            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            middle = new Location((toX + finalX) / 2, (toY + finalY) / 2);
+            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+
+            board.Apply(initalMove);
+
+            Assert.AreEqual(to, board.ActivePiece);
+        }
+
+        [Test]
         [TestCase(Color.Black, 3, 5, 1, 3)]
         [TestCase(Color.Black, 3, 5, 5, 3)]
         [TestCase(Color.Red, 4, 2, 2, 4)]
@@ -191,6 +315,26 @@ namespace Checkers.UnitTests
         }
 
         [Test]
+        [TestCase(Color.Black, 3, 5, 1, 3)]
+        [TestCase(Color.Black, 3, 5, 5, 3)]
+        [TestCase(Color.Red, 4, 2, 2, 4)]
+        [TestCase(Color.Red, 4, 2, 6, 4)]
+        public void Apply_SetsNextPlayerAfterCapture(Color color, int fromX, int fromY, int toX, int toY)
+        {
+            var from = new Location(fromX, fromY);
+            var to = new Location(toX, toY);
+            var move = new Move(color, from, to);
+            var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
+            var board = GetEmptyBoard(color);
+            board[from] = new Piece(PieceType.Piece, color);
+            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+
+            board.Apply(move);
+
+            Assert.AreNotEqual(color, board.CurrentPlayer);
+        }
+
+        [Test]
         [TestCase(Color.Black, 1, 1, 0, 0)]
         [TestCase(Color.Black, 5, 1, 6, 0)]
         [TestCase(Color.Red, 2, 6, 1, 7)]
@@ -207,77 +351,6 @@ namespace Checkers.UnitTests
 
             Assert.IsNull(board[from]);
             Assert.AreEqual(PieceType.King, board[to]?.Type);
-        }
-
-        [Test]
-        public void ApplyMany_AllowsMultiCapture()
-        {
-            var board = GetEmptyBoard(Color.Red);
-            board[0, 0] = new Piece(PieceType.Piece, Color.Red);
-            board[1, 1] = new Piece(PieceType.Piece, Color.Black);
-            board[3, 3] = new Piece(PieceType.Piece, Color.Black);
-            var moves = new List<Move>
-            {
-                new Move(Color.Red, new Location(0, 0), new Location(2, 2)),
-                new Move(Color.Red, new Location(2, 2), new Location(4, 4))
-            };
-
-            Assert.AreEqual(true, board.Apply(moves));
-
-            Assert.AreEqual(Color.Red, board[4, 4]?.Color);
-            Assert.IsNull(board[1, 1]);
-            Assert.IsNull(board[3, 3]);
-        }
-
-        [Test]
-        public void ApplyMany_DoesNotAllowNonCaptureMoves()
-        {
-            var board = GetEmptyBoard(Color.Red);
-            board[0, 0] = new Piece(PieceType.Piece, Color.Red);
-            board[1, 1] = new Piece(PieceType.Piece, Color.Black);
-            var moves = new List<Move>
-            {
-                new Move(Color.Red, new Location(0, 0), new Location(2, 2)),
-                new Move(Color.Red, new Location(2, 2), new Location(3, 3))
-            };
-
-            Assert.AreEqual(false, board.Apply(moves));
-        }
-
-        [Test]
-        public void ApplyMany_ResetsStateOnFailure()
-        {
-            var board = GetEmptyBoard(Color.Red);
-            board[0, 0] = new Piece(PieceType.Piece, Color.Red);
-            board[1, 1] = new Piece(PieceType.Piece, Color.Black);
-            var moves = new List<Move>
-            {
-                new Move(Color.Red, new Location(0, 0), new Location(2, 2)),
-                new Move(Color.Red, new Location(2, 2), new Location(3, 3))
-            };
-
-            board.Apply(moves);
-
-            Assert.AreEqual(Color.Red, board[0, 0]?.Color);
-            Assert.AreEqual(Color.Black, board[1, 1]?.Color);
-            Assert.IsNull(board[2, 2]);
-        }
-
-        [Test]
-        public void ApplyMany_DoesNotAllowNonChainedMoves()
-        {
-            var board = GetEmptyBoard(Color.Red);
-            board[0, 0] = new Piece(PieceType.Piece, Color.Red);
-            board[4, 0] = new Piece(PieceType.Piece, Color.Red);
-            board[1, 1] = new Piece(PieceType.Piece, Color.Black);
-            board[5, 1] = new Piece(PieceType.Piece, Color.Black);
-            var moves = new List<Move>
-            {
-                new Move(Color.Red, new Location(0, 0), new Location(2, 2)),
-                new Move(Color.Red, new Location(4, 0), new Location(6, 2))
-            };
-
-            Assert.AreEqual(false, board.Apply(moves));
         }
 
         private Board GetEmptyBoard(Color color)

@@ -92,5 +92,18 @@ namespace Checkers
 
             return false;
         }
+
+        public static Location? operator +(Location location, Offset offset)
+        {
+            var x = location.X + offset.X;
+            var y = location.Y + offset.Y;
+
+            if (x < 0 || y < 0 || x > 7 || y > 7)
+            {
+                return null;
+            }
+
+            return new Location(x, y);
+        }
     }
 }

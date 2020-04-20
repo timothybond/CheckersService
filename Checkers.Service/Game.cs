@@ -12,6 +12,8 @@ namespace Checkers.Service
             this.RedName = "?";
             this.BlackName = "?";
             this.Moves = new List<GameMove>();
+            this.CurrentPlayer = Color.Red;
+            this.ActivePiece = null;
         }
 
         public string Id { get; set; }  
@@ -23,5 +25,9 @@ namespace Checkers.Service
         public DateTime StartTime { get; set; }
 
         public List<GameMove> Moves { get; set; }
+
+        public Color CurrentPlayer { get; set; }
+
+        public string? ActivePiece { get; set; }
     }
 }

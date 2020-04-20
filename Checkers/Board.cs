@@ -20,6 +20,16 @@ namespace Checkers
             this.ResetGame();
         }
 
+        /// <summary>
+        /// Hidden constructor to let us run the game forward to get valid moves.
+        /// </summary>
+        /// <param name="pieces"></param>
+        private Board(Piece?[,] pieces, Color currentPlayer)
+        {
+            this.pieces = (Piece?[,])pieces.Clone();
+            this.CurrentPlayer = currentPlayer;
+        }
+
         public void ResetGame(Color? firstPlayer = null)
         {
             this.CurrentPlayer = firstPlayer ?? Color.Red;
@@ -89,63 +99,12 @@ namespace Checkers
             }
         }
 
-        /// <summary>
-        /// Applies multiple moves, assuming they are all valid in the order given,
-        /// and they are a series of captures by the same piece.
-        /// </summary>
-        public bool Apply(IEnumerable<Move> moveSeries)
-        {
-            var moves = new List<Move>(moveSeries);
-
-            if (moves.Count == 0)
-            {
-                return false;
-            }
-
-            if (moves.Count == 1)
-            {
-                return Apply(moves[0]);
-            }
-
-            if (moves.Any(m => !m.IsCapture))
-            {
-                return false;
-            }
-
-            for (var i = 1; i < moves.Count; i++)
-            {
-                if (!moves[i].From.Equals(moves[i - 1].To))
-                {
-                    return false;
-                }
-            }
-
-            // Hacky way to preserve the state if some middle move is invalid
-            var initialState = (Piece?[,])this.pieces.Clone();
-
-            foreach (var move in moves)
-            {
-                if (!this.Apply(move, false))
-                {
-                    this.pieces = (Piece?[,])initialState.Clone();
-                    return false;
-                }
-            }
-
-            this.SetNextPlayer();
-
-            return true;
-        }
+        public Location? ActivePiece { get; private set; }
 
         /// <summary>
         /// If the move is valid, applies it and returns <c>true</c>. Otherwise, returns <c>false</c>.
         /// </summary>
         public bool Apply(Move move)
-        {
-            return this.Apply(move, true);
-        }
-
-        private bool Apply(Move move, bool nextPlayer)
         {
             if (!this.IsValid(move))
             {
@@ -176,7 +135,16 @@ namespace Checkers
                 }
             }
 
-            if (nextPlayer)
+            if (move.IsCapture)
+            {
+                this.ActivePiece = move.To;
+
+                if (!this.GetValidMoves().Any())
+                {
+                    this.SetNextPlayer();
+                }
+            }
+            else
             {
                 this.SetNextPlayer();
             }
@@ -184,9 +152,109 @@ namespace Checkers
             return true;
         }
 
+        /// <summary>
+        /// Passes control to the next player.
+        /// 
+        /// Only valid after a capture that would allow another capture,
+        /// where the active player chooses to forego that capture.
+        /// </summary>
+        /// <returns><c>true</c> if this was a valid attempt to pass, <c>false</c> otherwise.</returns>
+        public bool Pass()
+        {
+            if (this.ActivePiece == null)
+            {
+                return false;
+            }
+
+            this.SetNextPlayer();
+
+            return true;
+        }
+
         private void SetNextPlayer()
         {
+            this.ActivePiece = null;
             this.CurrentPlayer = this.CurrentPlayer == Color.Black ? Color.Red : Color.Black;
+        }
+
+        /// <summary>
+        /// Gets all valid moves for the current player (and, if appropriate, the last moved piece).
+        /// </summary>
+        /// <returns></returns>
+        public List<ValidMove> GetValidMoves()
+        {
+            var results = new List<ValidMove>();
+
+            if (this.ActivePiece != null)
+            {
+                results.AddRange(
+                    this.GetValidMoves(this.ActivePiece.X, this.ActivePiece.Y)
+                        .Where(m => m.IsCapture));
+                return results;
+            }
+
+            for (var x = 0; x < 8; x++)
+            {
+                for (var y = 0; y < 8; y++)
+                {
+                    if (this[x, y]?.Color == this.CurrentPlayer)
+                    {
+                        results.AddRange(this.GetValidMoves(x, y));
+                    }
+                }
+            }
+
+            return results;
+        }
+
+        private List<ValidMove> GetValidMoves(int x, int y)
+        {
+            var results = new List<ValidMove>();
+
+            var offsets = new List<Offset>
+            {
+                new Offset { X = 1, Y = 1},
+                new Offset { X = 1, Y = -1},
+                new Offset { X = -1, Y = 1},
+                new Offset { X = -1, Y = -1},
+                new Offset { X = 2, Y = 2},
+                new Offset { X = 2, Y = -2},
+                new Offset { X = -2, Y = 2},
+                new Offset { X = -2, Y = -2}
+            };
+
+            if (this[x, y]?.Color == this.CurrentPlayer)
+            {
+                var from = new Location(x, y);
+
+                foreach (var offset in offsets)
+                {
+                    var to = from + offset;
+
+                    if (to == null)
+                    {
+                        continue;
+                    }
+
+                    var move = new ValidMove(this.CurrentPlayer, from, to);
+
+                    if (this.IsValid(move))
+                    {
+                        results.Add(move);
+
+                        if (move.IsCapture)
+                        {
+                            var newBoard = new Board(this.pieces, this.CurrentPlayer);
+                            newBoard.Apply(move);
+                            newBoard.CurrentPlayer = this.CurrentPlayer;
+
+                            move.ChainedMoves.AddRange(newBoard.GetValidMoves(to.X, to.Y).Where(m => m.IsCapture).ToList());
+                        }
+                    }
+                }
+            }
+
+            return results;
         }
 
         /// <summary>

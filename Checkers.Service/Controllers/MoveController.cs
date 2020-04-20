@@ -33,24 +33,29 @@ namespace Checkers.Service.Controllers
                     board.Apply(move);
                 }
 
-                var movesToApply = newMove.Moves.Select(m => m.ToMove()).ToList();
-
-                if (!board.Apply(movesToApply))
+                if (newMove.Move == null)
                 {
-                    return BadRequest($"Invalid move(s): {string.Join(", ", movesToApply.Select(m => m.ToString()))}");
+                    if (!board.Pass())
+                    {
+                        return BadRequest(
+                            "Invalid attempt to pass (i.e., no move received, but player " +
+                            "has not just done a capture with a possible follow-up).");
+                    }
+                }
+                else
+                {
+                    var moveToApply = newMove.Move.ToMove();
+
+                    if (!board.Apply(moveToApply))
+                    {
+                        return BadRequest($"Invalid move: {moveToApply}");
+                    }
+
+                    game.Moves.Add(newMove.Move);
                 }
 
-                // TODO: Verify this updates in the cache
-                foreach (var appliedMove in movesToApply)
-                {
-                    game.Moves.Add(
-                        new GameMove
-                        {
-                            Color = appliedMove.Color,
-                            From = appliedMove.From.ToString(),
-                            To = appliedMove.To.ToString()
-                        });
-                }
+                game.CurrentPlayer = board.CurrentPlayer;
+                game.ActivePiece = board.ActivePiece?.ToString();
 
                 return game;
             }
