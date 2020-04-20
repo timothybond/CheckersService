@@ -10,8 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import "./css/main.css";
 var Color;
 (function (Color) {
-    Color[Color["Black"] = 1] = "Black";
-    Color[Color["Red"] = 2] = "Red";
+    Color[Color["Black"] = 0] = "Black";
+    Color[Color["Red"] = 1] = "Red";
 })(Color || (Color = {}));
 var PieceType;
 (function (PieceType) {

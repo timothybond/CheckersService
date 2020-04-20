@@ -1,6 +1,6 @@
 ﻿import "./css/main.css";
 
-enum Color { Black = 1, Red = 2 }
+enum Color { Black = 0, Red = 1 }
 enum PieceType { Piece, King };
 
 const BOARD_SQUARE = 75;
