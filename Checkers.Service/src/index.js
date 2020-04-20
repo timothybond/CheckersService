@@ -195,6 +195,35 @@ function ClearIndicators() {
         selectedPieceIndicator = null;
     }
 }
+function ShowJoinGame() {
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('joinGameSetup').style.display = 'inline';
+}
+function JoinGame() {
+    userColor = Color.Black;
+    gameId = document.getElementById('gameId').value;
+    fetch(`./getgame/${gameId}`)
+        .then(function onGameJoined(response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (response.ok) {
+                document.getElementById('joinGameSetup').style.display = 'none';
+                document.getElementById('main').style.display = 'inline';
+                let json = yield response.json();
+                gameState = GameState.InProgress;
+                currentMove = 0;
+                board.ResetBoard();
+                UpdateGameState(json);
+            }
+            else {
+                document.getElementById('joinGameFailure').style.display = 'inline';
+                document.getElementById('joinGameFailure').innerText = `Failed to join game: ${response.statusText}`;
+            }
+        });
+    }, function onGameJoinFailed(err) {
+        document.getElementById('startGameFailure').style.display = 'inline';
+        document.getElementById('startGameFailure').innerText = `Game creation failed: ${err}`;
+    });
+}
 function StartGame() {
     document.getElementById('startGameFailure').style.display = 'none';
     fetch('./creategame')
@@ -221,6 +250,15 @@ function StartGame() {
 }
 function UpdateGameState(json) {
     gameId = json.id;
+    document.getElementById("gameIdDisplay").innerText = gameId;
+    let moves = json.moves;
+    for (let i = currentMove; i < moves.length; i++) {
+        let from = FromLocationString(moves[i].from);
+        let to = FromLocationString(moves[i].to);
+        let move = new Move(from[0], from[1], to[0], to[1]);
+        board.ApplyMove(move); // TODO: Animate
+        currentMove++;
+    }
     if (json.currentPlayer == userColor) {
         userState = UserState.Ready;
         validMovesByPiece = new Map();
@@ -238,6 +276,7 @@ function UpdateGameState(json) {
     }
     else {
         userState = UserState.OtherPlayerMove;
+        window.setTimeout(PollGame, 500);
     }
 }
 function LocationString(x, y) {
@@ -281,6 +320,7 @@ function OnClick(event) {
             }
             else {
                 let move = new Move(selectedPiece[0], selectedPiece[1], x, y);
+                ClearIndicators();
                 userState = UserState.Processing;
                 fetch('./move', {
                     method: 'post',
@@ -296,14 +336,16 @@ function OnClick(event) {
                         }
                     })
                 }).then(function onSuccess(response) {
-                    if (response.ok) {
-                        board.ApplyMove(move);
-                        userState = UserState.OtherPlayerMove;
-                    }
-                    else {
-                        // TODO: Show error
-                        userState = UserState.Ready;
-                    }
+                    return __awaiter(this, void 0, void 0, function* () {
+                        if (response.ok) {
+                            let json = yield response.json();
+                            UpdateGameState(json);
+                        }
+                        else {
+                            // TODO: Show error
+                            userState = UserState.Ready;
+                        }
+                    });
                 }, function onFailure(err) {
                     // TODO: Show error
                     userState = UserState.Ready;
@@ -314,6 +356,17 @@ function OnClick(event) {
         }
     }
 }
+function PollGame() {
+    fetch(`./getgame/${gameId}`)
+        .then(function onGameUpdated(response) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (response.ok) {
+                let json = yield response.json();
+                UpdateGameState(json);
+            }
+        });
+    });
+}
 function SelectPiece(x, y) {
     userState = UserState.PieceSelected;
     selectedPiece = [x, y];
@@ -321,7 +374,17 @@ function SelectPiece(x, y) {
     if (!validMoves) {
         validMoves = new Array();
     }
+    let indicators = document.getElementById('indicators');
+    let selectedPieceIndicator = document.createElementNS(SVG_NS, "rect");
+    selectedPieceIndicator.setAttribute("x", `${x * BOARD_SQUARE}`);
+    selectedPieceIndicator.setAttribute("y", `${y * BOARD_SQUARE}`);
+    selectedPieceIndicator.setAttribute("width", `${BOARD_SQUARE}`);
+    selectedPieceIndicator.setAttribute("height", `${BOARD_SQUARE}`);
+    selectedPieceIndicator.setAttribute("fill", '#88ff88');
+    indicators.appendChild(selectedPieceIndicator);
     // TODO: Add valid move indicators
 }
 document.getElementById('startGameButton').addEventListener('click', StartGame);
+document.getElementById('displayJoinGameButton').addEventListener('click', ShowJoinGame);
+document.getElementById('joinGameButton').addEventListener('click', JoinGame);
 document.getElementById('board').addEventListener('click', OnClick);

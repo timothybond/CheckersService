@@ -195,8 +195,8 @@ let selectedPiece: [number, number];
 selectedPiece = null;
 let validMoves = new Array<[number, number]>();
 let validMovesByPiece = new Map<number, Array<[number, number]>>();
-let validMoveIndicators = new Array<HTMLElement>();
-let selectedPieceIndicator: HTMLElement;
+let validMoveIndicators = new Array<SVGRectElement>();
+let selectedPieceIndicator: SVGRectElement;
 selectedPieceIndicator = null;
 
 function ClearIndicators() {
@@ -209,6 +209,43 @@ function ClearIndicators() {
         selectedPieceIndicator.remove();
         selectedPieceIndicator = null;
     }
+}
+
+function ShowJoinGame() {
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('joinGameSetup').style.display = 'inline';
+}
+
+function JoinGame() {
+    userColor = Color.Black;
+
+    gameId = (<HTMLInputElement>document.getElementById('gameId')).value;
+
+    fetch(`./getgame/${gameId}`)
+        .then(
+            async function onGameJoined(response) {
+                if (response.ok) {
+                    document.getElementById('joinGameSetup').style.display = 'none';
+                    document.getElementById('main').style.display = 'inline';
+
+                    let json = await response.json();
+
+                    gameState = GameState.InProgress;
+                    currentMove = 0;
+                    board.ResetBoard();
+
+                    UpdateGameState(json);
+
+                } else {
+                    document.getElementById('joinGameFailure').style.display = 'inline';
+                    document.getElementById('joinGameFailure').innerText = `Failed to join game: ${response.statusText}`;
+                }
+
+            },
+            function onGameJoinFailed(err) {
+                document.getElementById('startGameFailure').style.display = 'inline';
+                document.getElementById('startGameFailure').innerText = `Game creation failed: ${err}`;
+            });
 }
 
 function StartGame() {
@@ -244,6 +281,18 @@ function StartGame() {
 function UpdateGameState(json: any) {
     gameId = json.id;
 
+    document.getElementById("gameIdDisplay").innerText = gameId;
+
+    let moves = json.moves as Array<any>;
+    for (let i = currentMove; i < moves.length; i++) {
+        let from = FromLocationString(moves[i].from as string);
+        let to = FromLocationString(moves[i].to as string);
+
+        let move = new Move(from[0], from[1], to[0], to[1]);
+        board.ApplyMove(move); // TODO: Animate
+        currentMove++;
+    }
+
     if (json.currentPlayer == userColor) {
         userState = UserState.Ready;
         validMovesByPiece = new Map<number, Array<[number, number]>>();
@@ -264,6 +313,8 @@ function UpdateGameState(json: any) {
         }
     } else {
         userState = UserState.OtherPlayerMove;
+
+        window.setTimeout(PollGame, 500);
     }
 }
 
@@ -315,6 +366,7 @@ function OnClick(event : MouseEvent) {
                 ClearIndicators();
             } else {
                 let move = new Move(selectedPiece[0], selectedPiece[1], x, y);
+                ClearIndicators();
                 userState = UserState.Processing;
                 fetch(
                     './move',
@@ -332,10 +384,10 @@ function OnClick(event : MouseEvent) {
                             }
                         })
                     }).then(
-                        function onSuccess(response) {
+                        async function onSuccess(response) {
                             if (response.ok) {
-                                board.ApplyMove(move);
-                                userState = UserState.OtherPlayerMove;
+                                let json = await response.json();
+                                UpdateGameState(json);
                             } else {
                                 // TODO: Show error
                                 userState = UserState.Ready;
@@ -353,6 +405,17 @@ function OnClick(event : MouseEvent) {
     }
 }
 
+function PollGame() {
+    fetch(`./getgame/${gameId}`)
+        .then(
+            async function onGameUpdated(response) {
+                if (response.ok) {
+                    let json = await response.json();
+                    UpdateGameState(json);
+                }
+            });
+}
+
 function SelectPiece(x : number, y : number) {
     userState = UserState.PieceSelected;
     selectedPiece = [x, y];
@@ -362,8 +425,34 @@ function SelectPiece(x : number, y : number) {
         validMoves = new Array<[number, number]>();
     }
 
+    let indicators = document.getElementById('indicators');
+
+    selectedPieceIndicator = document.createElementNS(SVG_NS, "rect");
+    selectedPieceIndicator.setAttribute("x", `${x * BOARD_SQUARE}`);
+    selectedPieceIndicator.setAttribute("y", `${y * BOARD_SQUARE}`);
+    selectedPieceIndicator.setAttribute("width", `${BOARD_SQUARE}`);
+    selectedPieceIndicator.setAttribute("height", `${BOARD_SQUARE}`);
+    selectedPieceIndicator.setAttribute("fill", '#8888ff');
+
+    indicators.appendChild(selectedPieceIndicator);
+
+    for (let [mx, my] of validMoves) {
+        let validMoveIndicator = document.createElementNS(SVG_NS, "rect");
+        validMoveIndicator.setAttribute("x", `${mx * BOARD_SQUARE}`);
+        validMoveIndicator.setAttribute("y", `${my * BOARD_SQUARE}`);
+        validMoveIndicator.setAttribute("width", `${BOARD_SQUARE}`);
+        validMoveIndicator.setAttribute("height", `${BOARD_SQUARE}`);
+        validMoveIndicator.setAttribute("fill", '#88ff88');
+
+        indicators.appendChild(validMoveIndicator);
+
+        validMoveIndicators.push(validMoveIndicator);
+    }
+
     // TODO: Add valid move indicators
 }
 
 document.getElementById('startGameButton').addEventListener('click', StartGame);
+document.getElementById('displayJoinGameButton').addEventListener('click', ShowJoinGame);
+document.getElementById('joinGameButton').addEventListener('click', JoinGame);
 document.getElementById('board').addEventListener('click', OnClick);
