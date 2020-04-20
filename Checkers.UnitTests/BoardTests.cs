@@ -353,6 +353,26 @@ namespace Checkers.UnitTests
             Assert.AreEqual(PieceType.King, board[to]?.Type);
         }
 
+        [Test]
+        public void GetValidMoves_StartingBoard()
+        {
+            var board = new Board();
+            board.ResetGame(Color.Red);
+
+            var validMoves = board.GetValidMoves();
+
+            // Four starting pieces can move, but one is adjacent to the wall
+            Assert.AreEqual(7, validMoves.Count);
+
+            Assert.Contains(new Move(Color.Red, new Location(0, 2), new Location(1, 3)), validMoves);
+            Assert.Contains(new Move(Color.Red, new Location(2, 2), new Location(1, 3)), validMoves);
+            Assert.Contains(new Move(Color.Red, new Location(2, 2), new Location(3, 3)), validMoves);
+            Assert.Contains(new Move(Color.Red, new Location(4, 2), new Location(3, 3)), validMoves);
+            Assert.Contains(new Move(Color.Red, new Location(4, 2), new Location(5, 3)), validMoves);
+            Assert.Contains(new Move(Color.Red, new Location(6, 2), new Location(5, 3)), validMoves);
+            Assert.Contains(new Move(Color.Red, new Location(6, 2), new Location(7, 3)), validMoves);
+        }
+
         private Board GetEmptyBoard(Color color)
         {
             var board = new Board();

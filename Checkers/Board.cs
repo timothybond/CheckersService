@@ -12,6 +12,18 @@ namespace Checkers
     /// </summary>
     public class Board
     {
+        private static readonly IReadOnlyList<Offset> ValidMoveOffsets = new List<Offset>
+            {
+                new Offset { X = 1, Y = 1},
+                new Offset { X = 1, Y = -1},
+                new Offset { X = -1, Y = 1},
+                new Offset { X = -1, Y = -1},
+                new Offset { X = 2, Y = 2},
+                new Offset { X = 2, Y = -2},
+                new Offset { X = -2, Y = 2},
+                new Offset { X = -2, Y = -2}
+            };
+
         Piece?[,] pieces;
 
         public Board()
@@ -181,9 +193,9 @@ namespace Checkers
         /// Gets all valid moves for the current player (and, if appropriate, the last moved piece).
         /// </summary>
         /// <returns></returns>
-        public List<ValidMove> GetValidMoves()
+        public List<Move> GetValidMoves()
         {
-            var results = new List<ValidMove>();
+            var results = new List<Move>();
 
             if (this.ActivePiece != null)
             {
@@ -207,51 +219,20 @@ namespace Checkers
             return results;
         }
 
-        private List<ValidMove> GetValidMoves(int x, int y)
+        private List<Move> GetValidMoves(int x, int y)
         {
-            var results = new List<ValidMove>();
-
-            var offsets = new List<Offset>
-            {
-                new Offset { X = 1, Y = 1},
-                new Offset { X = 1, Y = -1},
-                new Offset { X = -1, Y = 1},
-                new Offset { X = -1, Y = -1},
-                new Offset { X = 2, Y = 2},
-                new Offset { X = 2, Y = -2},
-                new Offset { X = -2, Y = 2},
-                new Offset { X = -2, Y = -2}
-            };
+            var results = new List<Move>();
 
             if (this[x, y]?.Color == this.CurrentPlayer)
             {
                 var from = new Location(x, y);
 
-                foreach (var offset in offsets)
-                {
-                    var to = from + offset;
-
-                    if (to == null)
-                    {
-                        continue;
-                    }
-
-                    var move = new ValidMove(this.CurrentPlayer, from, to);
-
-                    if (this.IsValid(move))
-                    {
-                        results.Add(move);
-
-                        if (move.IsCapture)
-                        {
-                            var newBoard = new Board(this.pieces, this.CurrentPlayer);
-                            newBoard.Apply(move);
-                            newBoard.CurrentPlayer = this.CurrentPlayer;
-
-                            move.ChainedMoves.AddRange(newBoard.GetValidMoves(to.X, to.Y).Where(m => m.IsCapture).ToList());
-                        }
-                    }
-                }
+                results.AddRange(
+                    ValidMoveOffsets
+                        .Select(offset => from + offset)
+                        .OfType<Location>()
+                        .Select(to => new Move(this.CurrentPlayer, from, to))
+                        .Where(move => this.IsValid(move)));
             }
 
             return results;
