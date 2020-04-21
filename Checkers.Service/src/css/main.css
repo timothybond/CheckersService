@@ -19,6 +19,10 @@
     fill: #d66b1d;
 }
 
+.whitepieceshadow {
+    fill: #b45918;
+}
+
 div#gameStatusIndicator {
     width: 100%;
     text-align: center;
@@ -31,6 +35,10 @@ div#gameStatusIndicator {
 
 .blackpiece {
     fill: #260702;
+}
+
+.blackpieceshadow {
+    fill: #180401;
 }
 
 button {

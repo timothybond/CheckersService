@@ -88,20 +88,49 @@ export class Board {
         subSvg.setAttribute("width", this.boardSquare.toString());
         subSvg.setAttribute("height", this.boardSquare.toString());
         subSvg.setAttribute("id", id);
+        var pieceShadow = document.createElementNS(SVG_NS, "path");
+        pieceShadow.setAttribute("d", "M7.5,37.5 l0,5 a1,1,0,0,0,60,0 l0,-5");
         var newCircle = document.createElementNS(SVG_NS, "circle");
         newCircle.setAttribute("r", "40%");
         if (color === Color.White) {
             newCircle.setAttribute("fill", "white");
             newCircle.setAttribute("class", "whitepiece");
+            pieceShadow.setAttribute("class", "whitepieceshadow");
         }
         else {
             newCircle.setAttribute("fill", "black");
             newCircle.setAttribute("class", "blackpiece");
+            pieceShadow.setAttribute("class", "blackpieceshadow");
         }
         newCircle.setAttribute("cx", "50%");
         newCircle.setAttribute("cy", "50%");
+        subSvg.appendChild(pieceShadow);
         subSvg.appendChild(newCircle);
         svgRoot.appendChild(subSvg);
+    }
+    UpdateSvgForKing(piece) {
+        let pieceSvg = this.GetSvg(piece);
+        if (pieceSvg.childElementCount == 4) {
+            return;
+        }
+        var pieceShadow = document.createElementNS(SVG_NS, "path");
+        pieceShadow.setAttribute("d", "M7.5,32.5 l0,5 a1,1,0,0,0,60,0 l0,-5");
+        var newCircle = document.createElementNS(SVG_NS, "circle");
+        newCircle.setAttribute("r", "40%");
+        if (piece.color === Color.White) {
+            newCircle.setAttribute("fill", "white");
+            newCircle.setAttribute("class", "whitepiece");
+            pieceShadow.setAttribute("class", "whitepieceshadow");
+        }
+        else {
+            newCircle.setAttribute("fill", "black");
+            newCircle.setAttribute("class", "blackpiece");
+            pieceShadow.setAttribute("class", "blackpieceshadow");
+        }
+        newCircle.setAttribute("cx", "50%");
+        newCircle.setAttribute("cy", "32.5");
+        pieceSvg.appendChild(pieceShadow);
+        pieceSvg.appendChild(newCircle);
     }
     ApplyMove(move, animate = false) {
         let piece = this.GetPiece(move.fromX, move.fromY);
@@ -120,6 +149,7 @@ export class Board {
         if ((move.toY == 0 && piece.color == Color.Black) ||
             (move.toY == 7 && piece.color == Color.White)) {
             piece.type = PieceType.King;
+            this.UpdateSvgForKing(piece);
         }
         this.UpdateSvgPosition(piece, move.toX, move.toY);
     }
