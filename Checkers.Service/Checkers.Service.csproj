@@ -6,7 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="src\checkers.ts" />
     <None Remove="src\index.ts" />
+    <None Remove="src\service.ts" />
   </ItemGroup>
 
   <ItemGroup>

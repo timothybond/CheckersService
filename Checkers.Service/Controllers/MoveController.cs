@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,11 @@ namespace Checkers.Service.Controllers
 
             if (cache.TryGetValue(newMove.GameId, out game))
             {
+                if (game.Winner != null)
+                {
+                    return BadRequest("Game is over.");
+                }
+
                 // TODO: Allow other color to go first
                 var board = new Board();
 
@@ -52,11 +58,10 @@ namespace Checkers.Service.Controllers
                     }
 
                     game.Moves.Add(newMove.Move);
-                }
+                    game = new Game(board, game);
 
-                game.CurrentPlayer = board.CurrentPlayer;
-                game.ValidMoves = board.GetValidMoves().Select(m => new GameMove(m)).ToList();
-                game.ActivePiece = board.ActivePiece?.ToString();
+                    cache.Set(game.Id, game);
+                }
 
                 return game;
             }

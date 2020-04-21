@@ -27,6 +27,25 @@ namespace Checkers.Service
                     .GetValidMoves()
                     .Select(m => new GameMove(m))
                     .ToList();
+            this.Winner = board.Winner;
+        }
+
+        public Game(Board board, Game game)
+        {
+            this.CurrentPlayer = board.CurrentPlayer;
+            this.ActivePiece = board.ActivePiece?.ToString();
+            this.ValidMoves =
+                board
+                    .GetValidMoves()
+                    .Select(m => new GameMove(m))
+                    .ToList();
+            this.Winner = board.Winner;
+
+            this.Id = game.Id;
+            this.Moves = new List<GameMove>(game.Moves);
+            this.RedName = game.RedName;
+            this.BlackName = game.BlackName;
+            this.StartTime = game.StartTime;
         }
 
         public string Id { get; set; }  
@@ -44,5 +63,7 @@ namespace Checkers.Service
         public string? ActivePiece { get; set; }
 
         public List<GameMove> ValidMoves { get; set; }
+
+        public Color? Winner { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 
 namespace Checkers
@@ -113,6 +114,8 @@ namespace Checkers
 
         public Location? ActivePiece { get; private set; }
 
+        public Color? Winner { get; private set; }
+
         /// <summary>
         /// If the move is valid, applies it and returns <c>true</c>. Otherwise, returns <c>false</c>.
         /// </summary>
@@ -149,6 +152,14 @@ namespace Checkers
 
             if (move.IsCapture)
             {
+                var winner = CheckForWinner();
+
+                if (winner != null)
+                {
+                    this.Winner = winner;
+                    return true;
+                }
+
                 this.ActivePiece = move.To;
 
                 if (!this.GetValidMoves().Any())
@@ -162,6 +173,36 @@ namespace Checkers
             }
 
             return true;
+        }
+
+        private Color? CheckForWinner()
+        {
+            var redCount = 0;
+            var blackCount = 0;
+
+            foreach (var piece in this.pieces)
+            {
+                if (piece?.Color == Color.Red)
+                {
+                    redCount += 1;
+                }
+                else if (piece?.Color == Color.Black)
+                {
+                    blackCount += 1;
+                }
+            }
+
+            if (redCount > 0 && blackCount == 0)
+            {
+                return Color.Red;
+            }
+
+            if (blackCount > 0 && redCount == 0)
+            {
+                return Color.Black;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -245,6 +286,11 @@ namespace Checkers
         /// <returns></returns>
         public bool IsValid(Move move)
         {
+            if (this.Winner != null)
+            {
+                return false;
+            }
+
             if (move.Color != this.CurrentPlayer)
             {
                 return false;
