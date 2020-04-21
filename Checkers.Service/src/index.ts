@@ -1,7 +1,6 @@
-﻿import "./css/main.css";
-
-enum Color { Black = 0, Red = 1 }
-enum PieceType { Piece, King };
+﻿import { Color, Piece, Move, Board } from "./checkers";
+import { ServiceMove, ServiceGame, Service } from "./service";
+import "./css/main.css";
 
 const BOARD_SQUARE = 75;
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -19,177 +18,11 @@ enum UserState {
     OtherPlayerMove
 }
 
-class Piece {
-    constructor(public readonly color: Color, public type: PieceType, public readonly svgId: string) {
-    }
-}
-
-class Move {
-    constructor(public readonly fromX: number, public readonly fromY: number, public readonly toX: number, public readonly toY: number) {
-    }
-}
-
-class Board {
-    pieces: Piece[];
-    maxId: number;
-    nextPlayer: Color;
-
-    constructor() {
-        this.maxId = 0;
-
-        this.pieces = [];
-
-        for (let i = 0; i < 64; i++) {
-            this.pieces.push(null);
-        }
-
-        this.nextPlayer = Color.Red;
-    }
-
-    GetPiece(x: number, y: number) {
-        return this.pieces[y * 8 + x];
-    }
-
-    SetPiece(x: number, y: number, piece: Piece) {
-        this.pieces[y * 8 + x] = piece;
-    }
-
-    ResetBoard(color = Color.Red): void {
-        for (let x = 0; x < 8; x++) {
-            for (let y = 0; y < 8; y++) {
-                let piece = this.GetPiece(x, y);
-
-                if (piece != null) {
-                    this.DeleteSvg(piece);
-                }
-            }
-        }
-
-        this.pieces = [];
-
-        for (let i = 0; i < 64; i++) {
-            this.pieces.push(null);
-        }
-
-        for (let y = 0; y < 3; y++) {
-            for (let x = 0; x < 8; x++) {
-                if ((x + y) % 2 == 0) {
-                    let newPiece = new Piece(Color.Red, PieceType.Piece, this.PieceId(this.maxId++));
-                    this.SetPiece(x, y, newPiece);
-                    this.AddPieceSvg(x, y, newPiece.color, newPiece.svgId);
-                    this.maxId++;
-                }
-            }
-        }
-
-        for (let y = 5; y < 8; y++) {
-            for (let x = 0; x < 8; x++) {
-                if ((x + y) % 2 == 0) {
-                    let newPiece = new Piece(Color.Black, PieceType.Piece, this.PieceId(this.maxId++));
-                    this.SetPiece(x, y, newPiece);
-                    this.AddPieceSvg(x, y, newPiece.color, newPiece.svgId);
-                    this.maxId++;
-                }
-            }
-        }
-
-        this.nextPlayer = color;
-    }
-
-    PieceId(val: number): string {
-        return `piece${val}`;
-    }
-
-    AddPieceSvg(x: number, y: number, color: Color, id: string) {
-        var svgRoot = document.getElementById("board");
-
-        var subSvg = document.createElementNS(SVG_NS, "svg");
-        subSvg.setAttribute("x", (BOARD_SQUARE * x).toString());
-        subSvg.setAttribute("y", (BOARD_SQUARE * y).toString());
-        subSvg.setAttribute("width", BOARD_SQUARE.toString());
-        subSvg.setAttribute("height", BOARD_SQUARE.toString());
-        subSvg.setAttribute("id", id);
-
-        var newCircle = document.createElementNS(SVG_NS, "circle");
-        newCircle.setAttribute("r", "40%");
-
-        if (color === Color.Red) {
-            newCircle.setAttribute("fill", "red");
-        } else {
-            newCircle.setAttribute("fill", "black");
-        }
-
-        newCircle.setAttribute("cx", "50%");
-        newCircle.setAttribute("cy", "50%");
-
-        subSvg.appendChild(newCircle);
-        svgRoot.appendChild(subSvg);
-    }
-
-    ApplyMove(move: Move, animate = false) {
-        let piece = this.GetPiece(move.fromX, move.fromY);
-
-        if (!piece) {
-            return;
-        }
-
-        this.SetPiece(move.toX, move.toY, piece);
-        this.SetPiece(move.fromX, move.fromY, null);
-
-        if (Math.abs(move.toX - move.fromX) == 2) {
-            var middleX = (move.fromX + move.toX) / 2;
-            var middleY = (move.fromY + move.toY) / 2;
-
-            let jumpedPiece = this.GetPiece(middleX, middleY);
-            this.DeleteSvg(jumpedPiece);
-            this.SetPiece(middleX, middleY, null);
-        }
-
-        if ((move.toY == 0 && piece.color == Color.Black) ||
-            (move.toY == 7 && piece.color == Color.Red)) {
-            piece.type = PieceType.King;
-        }
-
-        this.UpdateSvgPosition(piece, move.toX, move.toY);
-    }
-
-    GetSvg(piece: Piece) : HTMLElement {
-        return document.getElementById(piece.svgId);;
-    }
-
-    DeleteSvg(piece: Piece, animate = false) {
-        let pieceSvg = this.GetSvg(piece);
-
-        if (animate) {
-            // TODO: Add fade out
-            window.setTimeout(pieceSvg.remove, 1000);
-        } else {
-            pieceSvg.remove();
-        }
-    }
-
-    UpdateSvgPosition(piece: Piece, x: number, y: number, animate = false) {
-        let pieceSvg = this.GetSvg(piece);
-
-        if (animate) {
-            // TODO: Add move animation
-        } else {
-            pieceSvg.setAttribute('x', `${BOARD_SQUARE * x}`);
-            pieceSvg.setAttribute('y', `${BOARD_SQUARE * y}`);
-        }
-
-        if (piece.type == PieceType.King && pieceSvg.childElementCount == 0) {
-            // TODO: Add some indicator for Kings
-            //var lineVertical = 
-        }
-    }
-}
-
 let gameId = '';
 let gameState = GameState.NoGame;
 let userState = UserState.Ready;
 let currentMove = 0;
-let board = new Board();
+let board = new Board(document.getElementById('board'), BOARD_SQUARE);
 let userColor = Color.Red;
 let selectedPiece: [number, number];
 selectedPiece = null;
@@ -198,6 +31,7 @@ let validMovesByPiece = new Map<number, Array<[number, number]>>();
 let validMoveIndicators = new Array<SVGRectElement>();
 let selectedPieceIndicator: SVGRectElement;
 selectedPieceIndicator = null;
+let service = new Service('.');
 
 function ClearIndicators() {
     while (validMoveIndicators.length > 0) {
@@ -221,56 +55,38 @@ function JoinGame() {
 
     gameId = (<HTMLInputElement>document.getElementById('gameId')).value;
 
-    fetch(`./getgame/${gameId}`)
+    service.get(gameId)
         .then(
-            async function onGameJoined(response) {
-                if (response.ok) {
-                    document.getElementById('joinGameSetup').style.display = 'none';
-                    document.getElementById('main').style.display = 'inline';
+            function onGameJoined(game: ServiceGame) {
+                document.getElementById('joinGameSetup').style.display = 'none';
+                document.getElementById('main').style.display = 'inline';
 
-                    let json = await response.json();
+                gameState = GameState.InProgress;
+                currentMove = 0;
+                board.ResetBoard();
 
-                    gameState = GameState.InProgress;
-                    currentMove = 0;
-                    board.ResetBoard();
-
-                    UpdateGameState(json);
-
-                } else {
-                    document.getElementById('joinGameFailure').style.display = 'inline';
-                    document.getElementById('joinGameFailure').innerText = `Failed to join game: ${response.statusText}`;
-                }
-
+                UpdateGameState(game);
             },
             function onGameJoinFailed(err) {
                 document.getElementById('startGameFailure').style.display = 'inline';
-                document.getElementById('startGameFailure').innerText = `Game creation failed: ${err}`;
+                document.getElementById('startGameFailure').innerText = err;
             });
 }
 
 function StartGame() {
     document.getElementById('startGameFailure').style.display = 'none';
 
-    fetch('./creategame')
+    service.create()
         .then(
-            async function onGameCreated(response) {
-                if (response.ok) {
-                    document.getElementById('setup').style.display = 'none';
-                    document.getElementById('main').style.display = 'inline';
+            function onGameCreated(game: ServiceGame) {
+                document.getElementById('setup').style.display = 'none';
+                document.getElementById('main').style.display = 'inline';
 
-                    let json = await response.json();
+                gameState = GameState.InProgress;
+                currentMove = 0;
+                board.ResetBoard();
 
-                    gameState = GameState.InProgress;
-                    currentMove = 0;
-                    board.ResetBoard();
-
-                    UpdateGameState(json);
-                    
-                } else {
-                    document.getElementById('startGameFailure').style.display = 'inline';
-                    document.getElementById('startGameFailure').innerText = `Game creation failed: ${response.statusText}`;
-                }
-
+                UpdateGameState(game);
             },
             function onGameCreationFailed(err) {
                 document.getElementById('startGameFailure').style.display = 'inline';
@@ -278,26 +94,25 @@ function StartGame() {
             });
 }
 
-function UpdateGameState(json: any) {
-    gameId = json.id;
+function UpdateGameState(game: ServiceGame) {
+    gameId = game.id;
 
-    document.getElementById("gameIdDisplay").innerText = gameId;
+    (<HTMLInputElement>document.getElementById("gameIdInput")).value = gameId;
 
-    let moves = json.moves as Array<any>;
-    for (let i = currentMove; i < moves.length; i++) {
-        let from = FromLocationString(moves[i].from as string);
-        let to = FromLocationString(moves[i].to as string);
+    for (let i = currentMove; i < game.moves.length; i++) {
+        let from = FromLocationString(game.moves[i].from as string);
+        let to = FromLocationString(game.moves[i].to as string);
 
         let move = new Move(from[0], from[1], to[0], to[1]);
         board.ApplyMove(move); // TODO: Animate
         currentMove++;
     }
 
-    if (json.currentPlayer == userColor) {
+    if (game.currentPlayer == userColor) {
         userState = UserState.Ready;
         validMovesByPiece = new Map<number, Array<[number, number]>>();
 
-        for (let validMove of json.validMoves) {
+        for (let validMove of game.validMoves) {
             let fromStr = validMove.from as string;
             let toStr = validMove.to as string;
 
@@ -316,6 +131,9 @@ function UpdateGameState(json: any) {
 
         window.setTimeout(PollGame, 500);
     }
+
+    document.getElementById("turnIndicator").innerText =
+        (game.currentPlayer == Color.Red ? "White" : "Black") + "'s Turn";
 }
 
 function LocationString(x: number, y: number): string {
@@ -346,8 +164,8 @@ function IsValidMove(x: number, y: number): boolean {
 }
 
 function OnClick(event : MouseEvent) {
-    let x = Math.floor(event.clientX / BOARD_SQUARE);
-    let y = Math.floor(event.clientY / BOARD_SQUARE);
+    let x = Math.floor(event.offsetX / BOARD_SQUARE);
+    let y = Math.floor(event.offsetY / BOARD_SQUARE);
 
     switch (userState) {
         case UserState.OtherPlayerMove:
@@ -406,13 +224,10 @@ function OnClick(event : MouseEvent) {
 }
 
 function PollGame() {
-    fetch(`./getgame/${gameId}`)
+    service.get(gameId)
         .then(
-            async function onGameUpdated(response) {
-                if (response.ok) {
-                    let json = await response.json();
-                    UpdateGameState(json);
-                }
+            function onGameUpdated(game: ServiceGame) {
+                UpdateGameState(game);
             });
 }
 
@@ -432,7 +247,8 @@ function SelectPiece(x : number, y : number) {
     selectedPieceIndicator.setAttribute("y", `${y * BOARD_SQUARE}`);
     selectedPieceIndicator.setAttribute("width", `${BOARD_SQUARE}`);
     selectedPieceIndicator.setAttribute("height", `${BOARD_SQUARE}`);
-    selectedPieceIndicator.setAttribute("fill", '#8888ff');
+    selectedPieceIndicator.setAttribute("fill", "transparent");
+    selectedPieceIndicator.setAttribute("stroke", "#8888ff");
 
     indicators.appendChild(selectedPieceIndicator);
 
@@ -442,17 +258,28 @@ function SelectPiece(x : number, y : number) {
         validMoveIndicator.setAttribute("y", `${my * BOARD_SQUARE}`);
         validMoveIndicator.setAttribute("width", `${BOARD_SQUARE}`);
         validMoveIndicator.setAttribute("height", `${BOARD_SQUARE}`);
-        validMoveIndicator.setAttribute("fill", '#88ff88');
+        validMoveIndicator.setAttribute("fill", "transparent");
+        validMoveIndicator.setAttribute("stroke", '#88ff88');
 
         indicators.appendChild(validMoveIndicator);
 
         validMoveIndicators.push(validMoveIndicator);
     }
+}
 
-    // TODO: Add valid move indicators
+function CopyGameId() {
+    var gameIdInput = document.getElementById('gameIdInput') as HTMLInputElement;
+
+    gameIdInput.disabled = false;
+    gameIdInput.select();
+    gameIdInput.setSelectionRange(0, 36);
+    document.execCommand('copy');
+    gameIdInput.setSelectionRange(0, 0);
+    gameIdInput.disabled = true;
 }
 
 document.getElementById('startGameButton').addEventListener('click', StartGame);
 document.getElementById('displayJoinGameButton').addEventListener('click', ShowJoinGame);
 document.getElementById('joinGameButton').addEventListener('click', JoinGame);
 document.getElementById('board').addEventListener('click', OnClick);
+document.getElementById('copyGameIdButton').addEventListener('click', CopyGameId);

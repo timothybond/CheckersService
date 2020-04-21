@@ -5,26 +5,29 @@
     <title>Checkers</title>
 </head>
 <body>
-    <div id="setup">
-        <button id="startGameButton" type="button">Start Game</button>
-        <button id="displayJoinGameButton" type="button">Join Game</button>
-        <div id="startGameFailure"></div>
+    <div class="container">
+        <div id="setup">
+            <button id="startGameButton" type="button">Start Game</button>
+            <button id="displayJoinGameButton" type="button">Join Game</button>
+            <div id="startGameFailure"></div>
+        </div>
+        <div id="joinGameSetup" style="display: none">
+            <label for="gameId">Game ID:</label><input type="text" id="gameId" />
+            <button id="joinGameButton" type="button">Join</button>
+            <div id="joinGameFailure"></div>
+        </div>
+        <div id="main" style="display: none">
+            <div id="turnIndicator">White's Turn</div>
+            <svg id="board" width="600" height="600">
+                <pattern id="checkerboard" width="150" height="150" patternUnits="userSpaceOnUse">
+                    <rect class="checker" width="75" height="75" x="0" y="0" />
+                    <rect class="checker" width="75" height="75" x="75" y="75" />
+                </pattern>
+                <rect x="0" y="0" width="600" height="600" fill="url(#checkerboard)" stroke="grey" />
+                <svg id="indicators"></svg>
+            </svg>
+            <label for="gameIdInput">Game ID:</label><input disabled="disabled" type="text" id="gameIdInput" /><button type="button" id="copyGameIdButton">Copy</button>
+        </div>
     </div>
-    <div id="joinGameSetup" style="display: none">
-        <label for="gameId">Game ID:</label><input type="text" id="gameId"/>
-        <button id="joinGameButton" type="button">Join</button>
-        <div id="joinGameFailure"></div>
-    </div>
-    <div id="main" style="display: none">
-        <svg id="board" width="600" height="600">
-            <pattern id="checkerboard" width="150" height="150" patternUnits="userSpaceOnUse">
-                <rect class="checker" width="75" height="75" x="0" y="0" />
-                <rect class="checker" width="75" height="75" x="75" y="75" />
-            </pattern>
-            <rect x="0" y="0" width="600" height="600" fill="url(#checkerboard)" stroke="grey" />
-            <svg id="indicators"></svg>
-        </svg>
-    </div>
-    <div id="gameIdDisplay"></div>
 </body>
 </html>

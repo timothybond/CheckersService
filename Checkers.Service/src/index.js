@@ -7,18 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+import { Color, Move, Board } from "./checkers";
+import { Service } from "./service";
 import "./css/main.css";
-var Color;
-(function (Color) {
-    Color[Color["Black"] = 0] = "Black";
-    Color[Color["Red"] = 1] = "Red";
-})(Color || (Color = {}));
-var PieceType;
-(function (PieceType) {
-    PieceType[PieceType["Piece"] = 0] = "Piece";
-    PieceType[PieceType["King"] = 1] = "King";
-})(PieceType || (PieceType = {}));
-;
 const BOARD_SQUARE = 75;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 var GameState;
@@ -34,149 +25,11 @@ var UserState;
     UserState[UserState["PieceSelected"] = 2] = "PieceSelected";
     UserState[UserState["OtherPlayerMove"] = 3] = "OtherPlayerMove";
 })(UserState || (UserState = {}));
-class Piece {
-    constructor(color, type, svgId) {
-        this.color = color;
-        this.type = type;
-        this.svgId = svgId;
-    }
-}
-class Move {
-    constructor(fromX, fromY, toX, toY) {
-        this.fromX = fromX;
-        this.fromY = fromY;
-        this.toX = toX;
-        this.toY = toY;
-    }
-}
-class Board {
-    constructor() {
-        this.maxId = 0;
-        this.pieces = [];
-        for (let i = 0; i < 64; i++) {
-            this.pieces.push(null);
-        }
-        this.nextPlayer = Color.Red;
-    }
-    GetPiece(x, y) {
-        return this.pieces[y * 8 + x];
-    }
-    SetPiece(x, y, piece) {
-        this.pieces[y * 8 + x] = piece;
-    }
-    ResetBoard(color = Color.Red) {
-        for (let x = 0; x < 8; x++) {
-            for (let y = 0; y < 8; y++) {
-                let piece = this.GetPiece(x, y);
-                if (piece != null) {
-                    this.DeleteSvg(piece);
-                }
-            }
-        }
-        this.pieces = [];
-        for (let i = 0; i < 64; i++) {
-            this.pieces.push(null);
-        }
-        for (let y = 0; y < 3; y++) {
-            for (let x = 0; x < 8; x++) {
-                if ((x + y) % 2 == 0) {
-                    let newPiece = new Piece(Color.Red, PieceType.Piece, this.PieceId(this.maxId++));
-                    this.SetPiece(x, y, newPiece);
-                    this.AddPieceSvg(x, y, newPiece.color, newPiece.svgId);
-                    this.maxId++;
-                }
-            }
-        }
-        for (let y = 5; y < 8; y++) {
-            for (let x = 0; x < 8; x++) {
-                if ((x + y) % 2 == 0) {
-                    let newPiece = new Piece(Color.Black, PieceType.Piece, this.PieceId(this.maxId++));
-                    this.SetPiece(x, y, newPiece);
-                    this.AddPieceSvg(x, y, newPiece.color, newPiece.svgId);
-                    this.maxId++;
-                }
-            }
-        }
-        this.nextPlayer = color;
-    }
-    PieceId(val) {
-        return `piece${val}`;
-    }
-    AddPieceSvg(x, y, color, id) {
-        var svgRoot = document.getElementById("board");
-        var subSvg = document.createElementNS(SVG_NS, "svg");
-        subSvg.setAttribute("x", (BOARD_SQUARE * x).toString());
-        subSvg.setAttribute("y", (BOARD_SQUARE * y).toString());
-        subSvg.setAttribute("width", BOARD_SQUARE.toString());
-        subSvg.setAttribute("height", BOARD_SQUARE.toString());
-        subSvg.setAttribute("id", id);
-        var newCircle = document.createElementNS(SVG_NS, "circle");
-        newCircle.setAttribute("r", "40%");
-        if (color === Color.Red) {
-            newCircle.setAttribute("fill", "red");
-        }
-        else {
-            newCircle.setAttribute("fill", "black");
-        }
-        newCircle.setAttribute("cx", "50%");
-        newCircle.setAttribute("cy", "50%");
-        subSvg.appendChild(newCircle);
-        svgRoot.appendChild(subSvg);
-    }
-    ApplyMove(move, animate = false) {
-        let piece = this.GetPiece(move.fromX, move.fromY);
-        if (!piece) {
-            return;
-        }
-        this.SetPiece(move.toX, move.toY, piece);
-        this.SetPiece(move.fromX, move.fromY, null);
-        if (Math.abs(move.toX - move.fromX) == 2) {
-            var middleX = (move.fromX + move.toX) / 2;
-            var middleY = (move.fromY + move.toY) / 2;
-            let jumpedPiece = this.GetPiece(middleX, middleY);
-            this.DeleteSvg(jumpedPiece);
-            this.SetPiece(middleX, middleY, null);
-        }
-        if ((move.toY == 0 && piece.color == Color.Black) ||
-            (move.toY == 7 && piece.color == Color.Red)) {
-            piece.type = PieceType.King;
-        }
-        this.UpdateSvgPosition(piece, move.toX, move.toY);
-    }
-    GetSvg(piece) {
-        return document.getElementById(piece.svgId);
-        ;
-    }
-    DeleteSvg(piece, animate = false) {
-        let pieceSvg = this.GetSvg(piece);
-        if (animate) {
-            // TODO: Add fade out
-            window.setTimeout(pieceSvg.remove, 1000);
-        }
-        else {
-            pieceSvg.remove();
-        }
-    }
-    UpdateSvgPosition(piece, x, y, animate = false) {
-        let pieceSvg = this.GetSvg(piece);
-        if (animate) {
-            // TODO: Add move animation
-        }
-        else {
-            pieceSvg.setAttribute('x', `${BOARD_SQUARE * x}`);
-            pieceSvg.setAttribute('y', `${BOARD_SQUARE * y}`);
-        }
-        if (piece.type == PieceType.King && pieceSvg.childElementCount == 0) {
-            // TODO: Add some indicator for Kings
-            //var lineVertical = 
-        }
-    }
-}
 let gameId = '';
 let gameState = GameState.NoGame;
 let userState = UserState.Ready;
 let currentMove = 0;
-let board = new Board();
+let board = new Board(document.getElementById('board'), BOARD_SQUARE);
 let userColor = Color.Red;
 let selectedPiece;
 selectedPiece = null;
@@ -185,6 +38,7 @@ let validMovesByPiece = new Map();
 let validMoveIndicators = new Array();
 let selectedPieceIndicator;
 selectedPieceIndicator = null;
+let service = new Service('.');
 function ClearIndicators() {
     while (validMoveIndicators.length > 0) {
         let vmi = validMoveIndicators.pop();
@@ -202,67 +56,48 @@ function ShowJoinGame() {
 function JoinGame() {
     userColor = Color.Black;
     gameId = document.getElementById('gameId').value;
-    fetch(`./getgame/${gameId}`)
-        .then(function onGameJoined(response) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (response.ok) {
-                document.getElementById('joinGameSetup').style.display = 'none';
-                document.getElementById('main').style.display = 'inline';
-                let json = yield response.json();
-                gameState = GameState.InProgress;
-                currentMove = 0;
-                board.ResetBoard();
-                UpdateGameState(json);
-            }
-            else {
-                document.getElementById('joinGameFailure').style.display = 'inline';
-                document.getElementById('joinGameFailure').innerText = `Failed to join game: ${response.statusText}`;
-            }
-        });
+    service.get(gameId)
+        .then(function onGameJoined(game) {
+        document.getElementById('joinGameSetup').style.display = 'none';
+        document.getElementById('main').style.display = 'inline';
+        gameState = GameState.InProgress;
+        currentMove = 0;
+        board.ResetBoard();
+        UpdateGameState(game);
     }, function onGameJoinFailed(err) {
         document.getElementById('startGameFailure').style.display = 'inline';
-        document.getElementById('startGameFailure').innerText = `Game creation failed: ${err}`;
+        document.getElementById('startGameFailure').innerText = err;
     });
 }
 function StartGame() {
     document.getElementById('startGameFailure').style.display = 'none';
-    fetch('./creategame')
-        .then(function onGameCreated(response) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (response.ok) {
-                document.getElementById('setup').style.display = 'none';
-                document.getElementById('main').style.display = 'inline';
-                let json = yield response.json();
-                gameState = GameState.InProgress;
-                currentMove = 0;
-                board.ResetBoard();
-                UpdateGameState(json);
-            }
-            else {
-                document.getElementById('startGameFailure').style.display = 'inline';
-                document.getElementById('startGameFailure').innerText = `Game creation failed: ${response.statusText}`;
-            }
-        });
+    service.create()
+        .then(function onGameCreated(game) {
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('main').style.display = 'inline';
+        gameState = GameState.InProgress;
+        currentMove = 0;
+        board.ResetBoard();
+        UpdateGameState(game);
     }, function onGameCreationFailed(err) {
         document.getElementById('startGameFailure').style.display = 'inline';
         document.getElementById('startGameFailure').innerText = `Game creation failed: ${err}`;
     });
 }
-function UpdateGameState(json) {
-    gameId = json.id;
-    document.getElementById("gameIdDisplay").innerText = gameId;
-    let moves = json.moves;
-    for (let i = currentMove; i < moves.length; i++) {
-        let from = FromLocationString(moves[i].from);
-        let to = FromLocationString(moves[i].to);
+function UpdateGameState(game) {
+    gameId = game.id;
+    document.getElementById("gameIdInput").value = gameId;
+    for (let i = currentMove; i < game.moves.length; i++) {
+        let from = FromLocationString(game.moves[i].from);
+        let to = FromLocationString(game.moves[i].to);
         let move = new Move(from[0], from[1], to[0], to[1]);
         board.ApplyMove(move); // TODO: Animate
         currentMove++;
     }
-    if (json.currentPlayer == userColor) {
+    if (game.currentPlayer == userColor) {
         userState = UserState.Ready;
         validMovesByPiece = new Map();
-        for (let validMove of json.validMoves) {
+        for (let validMove of game.validMoves) {
             let fromStr = validMove.from;
             let toStr = validMove.to;
             let from = FromLocationString(fromStr);
@@ -278,6 +113,8 @@ function UpdateGameState(json) {
         userState = UserState.OtherPlayerMove;
         window.setTimeout(PollGame, 500);
     }
+    document.getElementById("turnIndicator").innerText =
+        (game.currentPlayer == Color.Red ? "White" : "Black") + "'s Turn";
 }
 function LocationString(x, y) {
     const vertical = '87654321';
@@ -300,8 +137,8 @@ function IsValidMove(x, y) {
     return false;
 }
 function OnClick(event) {
-    let x = Math.floor(event.clientX / BOARD_SQUARE);
-    let y = Math.floor(event.clientY / BOARD_SQUARE);
+    let x = Math.floor(event.offsetX / BOARD_SQUARE);
+    let y = Math.floor(event.offsetY / BOARD_SQUARE);
     switch (userState) {
         case UserState.OtherPlayerMove:
         case UserState.Processing:
@@ -357,14 +194,9 @@ function OnClick(event) {
     }
 }
 function PollGame() {
-    fetch(`./getgame/${gameId}`)
-        .then(function onGameUpdated(response) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (response.ok) {
-                let json = yield response.json();
-                UpdateGameState(json);
-            }
-        });
+    service.get(gameId)
+        .then(function onGameUpdated(game) {
+        UpdateGameState(game);
     });
 }
 function SelectPiece(x, y) {
@@ -375,16 +207,37 @@ function SelectPiece(x, y) {
         validMoves = new Array();
     }
     let indicators = document.getElementById('indicators');
-    let selectedPieceIndicator = document.createElementNS(SVG_NS, "rect");
+    selectedPieceIndicator = document.createElementNS(SVG_NS, "rect");
     selectedPieceIndicator.setAttribute("x", `${x * BOARD_SQUARE}`);
     selectedPieceIndicator.setAttribute("y", `${y * BOARD_SQUARE}`);
     selectedPieceIndicator.setAttribute("width", `${BOARD_SQUARE}`);
     selectedPieceIndicator.setAttribute("height", `${BOARD_SQUARE}`);
-    selectedPieceIndicator.setAttribute("fill", '#88ff88');
+    selectedPieceIndicator.setAttribute("fill", "transparent");
+    selectedPieceIndicator.setAttribute("stroke", "#8888ff");
     indicators.appendChild(selectedPieceIndicator);
-    // TODO: Add valid move indicators
+    for (let [mx, my] of validMoves) {
+        let validMoveIndicator = document.createElementNS(SVG_NS, "rect");
+        validMoveIndicator.setAttribute("x", `${mx * BOARD_SQUARE}`);
+        validMoveIndicator.setAttribute("y", `${my * BOARD_SQUARE}`);
+        validMoveIndicator.setAttribute("width", `${BOARD_SQUARE}`);
+        validMoveIndicator.setAttribute("height", `${BOARD_SQUARE}`);
+        validMoveIndicator.setAttribute("fill", "transparent");
+        validMoveIndicator.setAttribute("stroke", '#88ff88');
+        indicators.appendChild(validMoveIndicator);
+        validMoveIndicators.push(validMoveIndicator);
+    }
+}
+function CopyGameId() {
+    var gameIdInput = document.getElementById('gameIdInput');
+    gameIdInput.disabled = false;
+    gameIdInput.select();
+    gameIdInput.setSelectionRange(0, 36);
+    document.execCommand('copy');
+    gameIdInput.setSelectionRange(0, 0);
+    gameIdInput.disabled = true;
 }
 document.getElementById('startGameButton').addEventListener('click', StartGame);
 document.getElementById('displayJoinGameButton').addEventListener('click', ShowJoinGame);
 document.getElementById('joinGameButton').addEventListener('click', JoinGame);
 document.getElementById('board').addEventListener('click', OnClick);
+document.getElementById('copyGameIdButton').addEventListener('click', CopyGameId);
