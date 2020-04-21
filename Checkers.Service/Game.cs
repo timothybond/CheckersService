@@ -10,10 +10,10 @@ namespace Checkers.Service
         {
             this.Id = "?";
             this.StartTime = DateTime.Now;
-            this.RedName = "?";
+            this.WhiteName = "?";
             this.BlackName = "?";
             this.Moves = new List<GameMove>();
-            this.CurrentPlayer = Color.Red;
+            this.CurrentPlayer = Color.White;
             this.ValidMoves = new List<GameMove>();
             this.ActivePiece = null;
         }
@@ -43,14 +43,14 @@ namespace Checkers.Service
 
             this.Id = game.Id;
             this.Moves = new List<GameMove>(game.Moves);
-            this.RedName = game.RedName;
+            this.WhiteName = game.WhiteName;
             this.BlackName = game.BlackName;
             this.StartTime = game.StartTime;
         }
 
         public string Id { get; set; }  
 
-        public string RedName { get; set; }
+        public string WhiteName { get; set; }
 
         public string BlackName { get; set; }
 

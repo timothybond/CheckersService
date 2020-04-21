@@ -1,6 +1,6 @@
 ﻿const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export enum Color { Black = 0, Red = 1 }
+export enum Color { Black = 0, White = 1 }
 export enum PieceType { Piece, King };
 
 export class Piece {
@@ -31,7 +31,7 @@ export class Board {
             this.pieces.push(null);
         }
 
-        this.nextPlayer = Color.Red;
+        this.nextPlayer = Color.White;
     }
 
     GetPiece(x: number, y: number) {
@@ -42,7 +42,7 @@ export class Board {
         this.pieces[y * 8 + x] = piece;
     }
 
-    ResetBoard(color = Color.Red): void {
+    ResetBoard(color = Color.White): void {
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
                 let piece = this.GetPiece(x, y);
@@ -62,7 +62,7 @@ export class Board {
         for (let y = 0; y < 3; y++) {
             for (let x = 0; x < 8; x++) {
                 if ((x + y) % 2 == 0) {
-                    let newPiece = new Piece(Color.Red, PieceType.Piece, this.PieceId(this.maxId++));
+                    let newPiece = new Piece(Color.White, PieceType.Piece, this.PieceId(this.maxId++));
                     this.SetPiece(x, y, newPiece);
                     this.AddPieceSvg(x, y, newPiece.color, newPiece.id);
                     this.maxId++;
@@ -101,9 +101,9 @@ export class Board {
         var newCircle = document.createElementNS(SVG_NS, "circle");
         newCircle.setAttribute("r", "40%");
 
-        if (color === Color.Red) {
-            newCircle.setAttribute("fill", "red");
-            newCircle.setAttribute("class", "redpiece");
+        if (color === Color.White) {
+            newCircle.setAttribute("fill", "white");
+            newCircle.setAttribute("class", "whitepiece");
         } else {
             newCircle.setAttribute("fill", "black");
             newCircle.setAttribute("class", "blackpiece");
@@ -136,7 +136,7 @@ export class Board {
         }
 
         if ((move.toY == 0 && piece.color == Color.Black) ||
-            (move.toY == 7 && piece.color == Color.Red)) {
+            (move.toY == 7 && piece.color == Color.White)) {
             piece.type = PieceType.King;
         }
 

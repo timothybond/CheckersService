@@ -17,7 +17,7 @@ namespace Checkers
 
         public override string ToString()
         {
-            if (this.Color == Color.Red)
+            if (this.Color == Color.White)
             {
                 return this.Type == PieceType.Piece ? "r" : "R";
             }

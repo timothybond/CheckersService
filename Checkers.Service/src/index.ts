@@ -23,7 +23,7 @@ let gameState = GameState.NoGame;
 let userState = UserState.Ready;
 let currentMove = 0;
 let board = new Board(document.getElementById('board'), BOARD_SQUARE);
-let userColor = Color.Red;
+let userColor = Color.White;
 let selectedPiece: [number, number];
 selectedPiece = null;
 let validMoves = new Array<[number, number]>();
@@ -114,7 +114,7 @@ function UpdateGameState(game: ServiceGame) {
 
     if (winner) {
         document.getElementById('gameStatusIndicator').innerText = 
-            (game.winner == Color.Red ? 'White' : 'Black') + ' Wins!'
+            (game.winner == Color.White ? 'White' : 'Black') + ' Wins!'
         return;
     }
 
@@ -143,7 +143,7 @@ function UpdateGameState(game: ServiceGame) {
     }
 
     document.getElementById("gameStatusIndicator").innerText =
-        (game.currentPlayer == Color.Red ? "White" : "Black") + "'s Turn";
+        (game.currentPlayer == Color.White ? "White" : "Black") + "'s Turn";
 }
 
 function LocationString(x: number, y: number): string {

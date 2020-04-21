@@ -12,7 +12,7 @@ class ServiceMoveContainer {
 export class ServiceGame {
     constructor(
         public readonly id: string,
-        public readonly redName: string,
+        public readonly whiteName: string,
         public readonly blackName: string,
         public readonly startTime: Date,
         public readonly moves: Array<ServiceMove>,

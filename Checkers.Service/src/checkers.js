@@ -2,7 +2,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 export var Color;
 (function (Color) {
     Color[Color["Black"] = 0] = "Black";
-    Color[Color["Red"] = 1] = "Red";
+    Color[Color["White"] = 1] = "White";
 })(Color || (Color = {}));
 export var PieceType;
 (function (PieceType) {
@@ -34,7 +34,7 @@ export class Board {
         for (let i = 0; i < 64; i++) {
             this.pieces.push(null);
         }
-        this.nextPlayer = Color.Red;
+        this.nextPlayer = Color.White;
     }
     GetPiece(x, y) {
         return this.pieces[y * 8 + x];
@@ -42,7 +42,7 @@ export class Board {
     SetPiece(x, y, piece) {
         this.pieces[y * 8 + x] = piece;
     }
-    ResetBoard(color = Color.Red) {
+    ResetBoard(color = Color.White) {
         for (let x = 0; x < 8; x++) {
             for (let y = 0; y < 8; y++) {
                 let piece = this.GetPiece(x, y);
@@ -58,7 +58,7 @@ export class Board {
         for (let y = 0; y < 3; y++) {
             for (let x = 0; x < 8; x++) {
                 if ((x + y) % 2 == 0) {
-                    let newPiece = new Piece(Color.Red, PieceType.Piece, this.PieceId(this.maxId++));
+                    let newPiece = new Piece(Color.White, PieceType.Piece, this.PieceId(this.maxId++));
                     this.SetPiece(x, y, newPiece);
                     this.AddPieceSvg(x, y, newPiece.color, newPiece.id);
                     this.maxId++;
@@ -90,9 +90,9 @@ export class Board {
         subSvg.setAttribute("id", id);
         var newCircle = document.createElementNS(SVG_NS, "circle");
         newCircle.setAttribute("r", "40%");
-        if (color === Color.Red) {
-            newCircle.setAttribute("fill", "red");
-            newCircle.setAttribute("class", "redpiece");
+        if (color === Color.White) {
+            newCircle.setAttribute("fill", "white");
+            newCircle.setAttribute("class", "whitepiece");
         }
         else {
             newCircle.setAttribute("fill", "black");
@@ -118,7 +118,7 @@ export class Board {
             this.SetPiece(middleX, middleY, null);
         }
         if ((move.toY == 0 && piece.color == Color.Black) ||
-            (move.toY == 7 && piece.color == Color.Red)) {
+            (move.toY == 7 && piece.color == Color.White)) {
             piece.type = PieceType.King;
         }
         this.UpdateSvgPosition(piece, move.toX, move.toY);

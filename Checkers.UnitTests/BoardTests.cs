@@ -33,18 +33,18 @@ namespace Checkers.UnitTests
         }
 
         [Test]
-        [TestCase(0, 0, Color.Red)]
-        [TestCase(2, 0, Color.Red)]
-        [TestCase(4, 0, Color.Red)]
-        [TestCase(6, 0, Color.Red)]
-        [TestCase(1, 1, Color.Red)]
-        [TestCase(3, 1, Color.Red)]
-        [TestCase(5, 1, Color.Red)]
-        [TestCase(7, 1, Color.Red)]
-        [TestCase(0, 2, Color.Red)]
-        [TestCase(2, 2, Color.Red)]
-        [TestCase(4, 2, Color.Red)]
-        [TestCase(6, 2, Color.Red)]
+        [TestCase(0, 0, Color.White)]
+        [TestCase(2, 0, Color.White)]
+        [TestCase(4, 0, Color.White)]
+        [TestCase(6, 0, Color.White)]
+        [TestCase(1, 1, Color.White)]
+        [TestCase(3, 1, Color.White)]
+        [TestCase(5, 1, Color.White)]
+        [TestCase(7, 1, Color.White)]
+        [TestCase(0, 2, Color.White)]
+        [TestCase(2, 2, Color.White)]
+        [TestCase(4, 2, Color.White)]
+        [TestCase(6, 2, Color.White)]
         [TestCase(1, 5, Color.Black)]
         [TestCase(3, 5, Color.Black)]
         [TestCase(5, 5, Color.Black)]
@@ -84,8 +84,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 3, 5, 1, 3)]
         [TestCase(Color.Black, 3, 5, 5, 3)]
-        [TestCase(Color.Red, 4, 2, 2, 4)]
-        [TestCase(Color.Red, 4, 2, 6, 4)]
+        [TestCase(Color.White, 4, 2, 2, 4)]
+        [TestCase(Color.White, 4, 2, 6, 4)]
         public void IsValid_AllowsCaptures(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -94,7 +94,7 @@ namespace Checkers.UnitTests
             var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
             var board = GetEmptyBoard(color);
             board[from] = new Piece(PieceType.Piece, color);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
 
             Assert.AreEqual(true, board.IsValid(move));
         }
@@ -102,8 +102,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 3, 5, 1, 3)]
         [TestCase(Color.Black, 3, 5, 5, 3)]
-        [TestCase(Color.Red, 4, 2, 2, 4)]
-        [TestCase(Color.Red, 4, 2, 6, 4)]
+        [TestCase(Color.White, 4, 2, 2, 4)]
+        [TestCase(Color.White, 4, 2, 6, 4)]
         public void IsValid_PreventsBlocked(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -112,8 +112,8 @@ namespace Checkers.UnitTests
             var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
             var board = GetEmptyBoard(color);
             board[from] = new Piece(PieceType.Piece, color);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
-            board[to] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
+            board[to] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
 
             Assert.AreEqual(false, board.IsValid(move));
         }
@@ -121,8 +121,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 3, 5, 1, 3, 3, 1)]
         [TestCase(Color.Black, 3, 5, 5, 3, 7, 1)]
-        [TestCase(Color.Red, 4, 2, 2, 4, 4, 6)]
-        [TestCase(Color.Red, 4, 2, 6, 4, 4, 6)]
+        [TestCase(Color.White, 4, 2, 2, 4, 4, 6)]
+        [TestCase(Color.White, 4, 2, 6, 4, 4, 6)]
         public void IsValid_AllowsChainedCapture(Color color, int fromX, int fromY, int toX, int toY, int finalX, int finalY)
         {
             var from = new Location(fromX, fromY);
@@ -135,9 +135,9 @@ namespace Checkers.UnitTests
             board[from] = new Piece(PieceType.Piece, color);
 
             var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
             middle = new Location((toX + finalX) / 2, (toY + finalY) / 2);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
 
             board.Apply(initalMove);
 
@@ -147,8 +147,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 3, 5, 1, 3, 2, 2)]
         [TestCase(Color.Black, 3, 5, 5, 3, 6, 2)]
-        [TestCase(Color.Red, 4, 2, 2, 4, 3, 5)]
-        [TestCase(Color.Red, 4, 2, 6, 4, 5, 5)]
+        [TestCase(Color.White, 4, 2, 2, 4, 3, 5)]
+        [TestCase(Color.White, 4, 2, 6, 4, 5, 5)]
         public void IsValid_DoesNotAllowChainedNonCapture(Color color, int fromX, int fromY, int toX, int toY, int finalX, int finalY)
         {
             var from = new Location(fromX, fromY);
@@ -161,7 +161,7 @@ namespace Checkers.UnitTests
             board[from] = new Piece(PieceType.Piece, color);
 
             var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
 
             board.Apply(initalMove);
 
@@ -171,8 +171,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 1, 5, 2, 4)]
         [TestCase(Color.Black, 1, 5, 0, 4)]
-        [TestCase(Color.Red, 4, 2, 3, 3)]
-        [TestCase(Color.Red, 4, 2, 5, 3)]
+        [TestCase(Color.White, 4, 2, 3, 3)]
+        [TestCase(Color.White, 4, 2, 5, 3)]
         public void IsValid_AllowsForwardMove(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -187,8 +187,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 1, 5, 2, 6)]
         [TestCase(Color.Black, 1, 5, 0, 6)]
-        [TestCase(Color.Red, 4, 2, 3, 1)]
-        [TestCase(Color.Red, 4, 2, 5, 1)]
+        [TestCase(Color.White, 4, 2, 3, 1)]
+        [TestCase(Color.White, 4, 2, 5, 1)]
         public void IsValid_DisallowsBackwardMove(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -203,8 +203,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 1, 5, 2, 6)]
         [TestCase(Color.Black, 1, 5, 0, 6)]
-        [TestCase(Color.Red, 4, 2, 3, 1)]
-        [TestCase(Color.Red, 4, 2, 5, 1)]
+        [TestCase(Color.White, 4, 2, 3, 1)]
+        [TestCase(Color.White, 4, 2, 5, 1)]
         public void IsValid_AllowsBackwardMoveForKing(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -219,12 +219,12 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 1, 5, 2, 4)]
         [TestCase(Color.Black, 1, 5, 0, 4)]
-        [TestCase(Color.Red, 4, 2, 3, 3)]
-        [TestCase(Color.Red, 4, 2, 5, 3)]
+        [TestCase(Color.White, 4, 2, 3, 3)]
+        [TestCase(Color.White, 4, 2, 5, 3)]
         [TestCase(Color.Black, 1, 5, 2, 6)]
         [TestCase(Color.Black, 1, 5, 0, 6)]
-        [TestCase(Color.Red, 4, 2, 3, 1)]
-        [TestCase(Color.Red, 4, 2, 5, 1)]
+        [TestCase(Color.White, 4, 2, 3, 1)]
+        [TestCase(Color.White, 4, 2, 5, 1)]
         public void Apply_MovesPiece(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -242,12 +242,12 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 1, 5, 2, 4)]
         [TestCase(Color.Black, 1, 5, 0, 4)]
-        [TestCase(Color.Red, 4, 2, 3, 3)]
-        [TestCase(Color.Red, 4, 2, 5, 3)]
+        [TestCase(Color.White, 4, 2, 3, 3)]
+        [TestCase(Color.White, 4, 2, 5, 3)]
         [TestCase(Color.Black, 1, 5, 2, 6)]
         [TestCase(Color.Black, 1, 5, 0, 6)]
-        [TestCase(Color.Red, 4, 2, 3, 1)]
-        [TestCase(Color.Red, 4, 2, 5, 1)]
+        [TestCase(Color.White, 4, 2, 3, 1)]
+        [TestCase(Color.White, 4, 2, 5, 1)]
         public void Apply_SetsNextPlayer(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -264,8 +264,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 3, 5, 1, 3, 3, 1)]
         [TestCase(Color.Black, 3, 5, 5, 3, 7, 1)]
-        [TestCase(Color.Red, 4, 2, 2, 4, 4, 6)]
-        [TestCase(Color.Red, 4, 2, 6, 4, 4, 6)]
+        [TestCase(Color.White, 4, 2, 2, 4, 4, 6)]
+        [TestCase(Color.White, 4, 2, 6, 4, 4, 6)]
         public void Apply_DoesNotSetNextPlayerAfterPossibleChainedCapture(Color color, int fromX, int fromY, int toX, int toY, int finalX, int finalY)
         {
             var from = new Location(fromX, fromY);
@@ -278,9 +278,9 @@ namespace Checkers.UnitTests
             board[from] = new Piece(PieceType.Piece, color);
 
             var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
             middle = new Location((toX + finalX) / 2, (toY + finalY) / 2);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
 
             board.Apply(initalMove);
 
@@ -290,8 +290,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 3, 5, 1, 3, 3, 1)]
         [TestCase(Color.Black, 3, 5, 5, 3, 7, 1)]
-        [TestCase(Color.Red, 4, 2, 2, 4, 4, 6)]
-        [TestCase(Color.Red, 4, 2, 6, 4, 4, 6)]
+        [TestCase(Color.White, 4, 2, 2, 4, 4, 6)]
+        [TestCase(Color.White, 4, 2, 6, 4, 4, 6)]
         public void Apply_SetsActivePieceAfterPossibleChainedCapture(Color color, int fromX, int fromY, int toX, int toY, int finalX, int finalY)
         {
             var from = new Location(fromX, fromY);
@@ -304,9 +304,9 @@ namespace Checkers.UnitTests
             board[from] = new Piece(PieceType.Piece, color);
 
             var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
             middle = new Location((toX + finalX) / 2, (toY + finalY) / 2);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
 
             board.Apply(initalMove);
 
@@ -316,8 +316,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 3, 5, 1, 3)]
         [TestCase(Color.Black, 3, 5, 5, 3)]
-        [TestCase(Color.Red, 4, 2, 2, 4)]
-        [TestCase(Color.Red, 4, 2, 6, 4)]
+        [TestCase(Color.White, 4, 2, 2, 4)]
+        [TestCase(Color.White, 4, 2, 6, 4)]
         public void Apply_RemovesCapturedPiece(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -326,7 +326,7 @@ namespace Checkers.UnitTests
             var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
             var board = GetEmptyBoard(color);
             board[from] = new Piece(PieceType.Piece, color);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
 
             Assert.AreEqual(true, board.Apply(move));
 
@@ -336,8 +336,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 3, 5, 1, 3)]
         [TestCase(Color.Black, 3, 5, 5, 3)]
-        [TestCase(Color.Red, 4, 2, 2, 4)]
-        [TestCase(Color.Red, 4, 2, 6, 4)]
+        [TestCase(Color.White, 4, 2, 2, 4)]
+        [TestCase(Color.White, 4, 2, 6, 4)]
         public void Apply_SetsNextPlayerAfterCapture(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -346,7 +346,7 @@ namespace Checkers.UnitTests
             var middle = new Location((fromX + toX) / 2, (fromY + toY) / 2);
             var board = GetEmptyBoard(color);
             board[from] = new Piece(PieceType.Piece, color);
-            board[middle] = new Piece(PieceType.Piece, color == Color.Red ? Color.Black : Color.Red);
+            board[middle] = new Piece(PieceType.Piece, color == Color.White ? Color.Black : Color.White);
 
             board.Apply(move);
 
@@ -356,8 +356,8 @@ namespace Checkers.UnitTests
         [Test]
         [TestCase(Color.Black, 1, 1, 0, 0)]
         [TestCase(Color.Black, 5, 1, 6, 0)]
-        [TestCase(Color.Red, 2, 6, 1, 7)]
-        [TestCase(Color.Red, 6, 6, 7, 7)]
+        [TestCase(Color.White, 2, 6, 1, 7)]
+        [TestCase(Color.White, 6, 6, 7, 7)]
         public void Apply_KingsPieceAtFinalRow(Color color, int fromX, int fromY, int toX, int toY)
         {
             var from = new Location(fromX, fromY);
@@ -376,20 +376,20 @@ namespace Checkers.UnitTests
         public void GetValidMoves_StartingBoard()
         {
             var board = new Board();
-            board.ResetGame(Color.Red);
+            board.ResetGame(Color.White);
 
             var validMoves = board.GetValidMoves();
 
             // Four starting pieces can move, but one is adjacent to the wall
             Assert.AreEqual(7, validMoves.Count);
 
-            Assert.Contains(new Move(Color.Red, new Location(0, 2), new Location(1, 3)), validMoves);
-            Assert.Contains(new Move(Color.Red, new Location(2, 2), new Location(1, 3)), validMoves);
-            Assert.Contains(new Move(Color.Red, new Location(2, 2), new Location(3, 3)), validMoves);
-            Assert.Contains(new Move(Color.Red, new Location(4, 2), new Location(3, 3)), validMoves);
-            Assert.Contains(new Move(Color.Red, new Location(4, 2), new Location(5, 3)), validMoves);
-            Assert.Contains(new Move(Color.Red, new Location(6, 2), new Location(5, 3)), validMoves);
-            Assert.Contains(new Move(Color.Red, new Location(6, 2), new Location(7, 3)), validMoves);
+            Assert.Contains(new Move(Color.White, new Location(0, 2), new Location(1, 3)), validMoves);
+            Assert.Contains(new Move(Color.White, new Location(2, 2), new Location(1, 3)), validMoves);
+            Assert.Contains(new Move(Color.White, new Location(2, 2), new Location(3, 3)), validMoves);
+            Assert.Contains(new Move(Color.White, new Location(4, 2), new Location(3, 3)), validMoves);
+            Assert.Contains(new Move(Color.White, new Location(4, 2), new Location(5, 3)), validMoves);
+            Assert.Contains(new Move(Color.White, new Location(6, 2), new Location(5, 3)), validMoves);
+            Assert.Contains(new Move(Color.White, new Location(6, 2), new Location(7, 3)), validMoves);
         }
 
         private Board GetEmptyBoard(Color color)

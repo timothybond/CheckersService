@@ -22,9 +22,9 @@ class ServiceMoveContainer {
     ;
 }
 export class ServiceGame {
-    constructor(id, redName, blackName, startTime, moves, currentPlayer, validMoves, activePiece, winner) {
+    constructor(id, whiteName, blackName, startTime, moves, currentPlayer, validMoves, activePiece, winner) {
         this.id = id;
-        this.redName = redName;
+        this.whiteName = whiteName;
         this.blackName = blackName;
         this.startTime = startTime;
         this.moves = moves;

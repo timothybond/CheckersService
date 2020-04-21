@@ -9,7 +9,7 @@ namespace Checkers
     /// <summary>
     /// Contains the current state of a Checkers board.
     /// 
-    /// Assumes <see cref="Color.Black"/> starts at the top and <see cref="Color.Red"/> at the bottom.
+    /// Assumes <see cref="Color.Black"/> starts at the top and <see cref="Color.White"/> at the bottom.
     /// </summary>
     public class Board
     {
@@ -45,19 +45,19 @@ namespace Checkers
 
         public void ResetGame(Color? firstPlayer = null)
         {
-            this.CurrentPlayer = firstPlayer ?? Color.Red;
+            this.CurrentPlayer = firstPlayer ?? Color.White;
 
             // Default piece locations:
             // Black on the bottom (high index),
-            // Red on the top (low index),
+            // White on the top (low index),
             // even spaces filled.
-            for (var redRow = 0; redRow < 3; redRow++)
+            for (var whiteRow = 0; whiteRow < 3; whiteRow++)
             {
                 for (var x = 0; x < 8; x++)
                 {
-                    if ((x + redRow) % 2 == 0)
+                    if ((x + whiteRow) % 2 == 0)
                     {
-                        this[x, redRow] = new Piece(PieceType.Piece, Color.Red);
+                        this[x, whiteRow] = new Piece(PieceType.Piece, Color.White);
                     }
                 }
             }
@@ -136,7 +136,7 @@ namespace Checkers
             }
 
             if ((move.To.Y == 0 && move.Color == Color.Black) ||
-                (move.To.Y == 7 && move.Color == Color.Red))
+                (move.To.Y == 7 && move.Color == Color.White))
             {
                 var piece = this[move.To];
 
@@ -177,14 +177,14 @@ namespace Checkers
 
         private Color? CheckForWinner()
         {
-            var redCount = 0;
+            var whiteCount = 0;
             var blackCount = 0;
 
             foreach (var piece in this.pieces)
             {
-                if (piece?.Color == Color.Red)
+                if (piece?.Color == Color.White)
                 {
-                    redCount += 1;
+                    whiteCount += 1;
                 }
                 else if (piece?.Color == Color.Black)
                 {
@@ -192,12 +192,12 @@ namespace Checkers
                 }
             }
 
-            if (redCount > 0 && blackCount == 0)
+            if (whiteCount > 0 && blackCount == 0)
             {
-                return Color.Red;
+                return Color.White;
             }
 
-            if (blackCount > 0 && redCount == 0)
+            if (blackCount > 0 && whiteCount == 0)
             {
                 return Color.Black;
             }
@@ -227,7 +227,7 @@ namespace Checkers
         private void SetNextPlayer()
         {
             this.ActivePiece = null;
-            this.CurrentPlayer = this.CurrentPlayer == Color.Black ? Color.Red : Color.Black;
+            this.CurrentPlayer = this.CurrentPlayer == Color.Black ? Color.White : Color.Black;
         }
 
         /// <summary>
@@ -305,8 +305,8 @@ namespace Checkers
 
             if (piece.Type == PieceType.Piece)
             {
-                // Red moves to higher numbers, Black to lower
-                var forward = move.Color == Color.Red ? 1 : -1;
+                // White moves to higher numbers, Black to lower
+                var forward = move.Color == Color.White ? 1 : -1;
                 
                 if ((move.To.Y - move.From.Y) * forward < 0)
                 {

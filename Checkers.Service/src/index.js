@@ -21,7 +21,7 @@ let gameState = GameState.NoGame;
 let userState = UserState.Ready;
 let currentMove = 0;
 let board = new Board(document.getElementById('board'), BOARD_SQUARE);
-let userColor = Color.Red;
+let userColor = Color.White;
 let selectedPiece;
 selectedPiece = null;
 let validMoves = new Array();
@@ -90,7 +90,7 @@ function UpdateGameState(game) {
     winner = game.winner;
     if (winner) {
         document.getElementById('gameStatusIndicator').innerText =
-            (game.winner == Color.Red ? 'White' : 'Black') + ' Wins!';
+            (game.winner == Color.White ? 'White' : 'Black') + ' Wins!';
         return;
     }
     if (game.currentPlayer == userColor) {
@@ -113,7 +113,7 @@ function UpdateGameState(game) {
         window.setTimeout(PollGame, 500);
     }
     document.getElementById("gameStatusIndicator").innerText =
-        (game.currentPlayer == Color.Red ? "White" : "Black") + "'s Turn";
+        (game.currentPlayer == Color.White ? "White" : "Black") + "'s Turn";
 }
 function LocationString(x, y) {
     const vertical = '87654321';
