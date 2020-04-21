@@ -1,8 +1,12 @@
 ﻿import { Color } from "./checkers";
 
 export class ServiceMove {
-    constructor(public readonly from: string, public readonly to: string, public readonly color: Color, public readonly gameId?: string) {
+    constructor(public readonly from: string, public readonly to: string, public readonly color: Color) {
     }
+}
+
+class ServiceMoveContainer {
+    constructor(public readonly move: ServiceMove, public readonly gameId: string) { };
 }
 
 export class ServiceGame {
@@ -14,7 +18,8 @@ export class ServiceGame {
         public readonly moves: Array<ServiceMove>,
         public readonly currentPlayer: Color,
         public readonly validMoves: Array<ServiceMove>,
-        public readonly activePiece: string) {
+        public readonly activePiece: string,
+        public readonly winner?: Color) {
     }
 }
 
@@ -66,14 +71,16 @@ export class Service {
             'Failed to create game');
     }
 
-    move(move : ServiceMove) {
-        fetch(`${this.url}/move`,
+    move(move: ServiceMove, gameId: string): Promise<ServiceGame> {
+        let requestBody = new ServiceMoveContainer(move, gameId);
+
+        return fetch(`${this.url}/move`,
             {
                 method: 'post',
                 headers: {
                     'content-type': 'application/json'
                 },
-                body: JSON.stringify(move)
+                body: JSON.stringify(requestBody)
             })
             .then(
                 async function onSuccess(response) {

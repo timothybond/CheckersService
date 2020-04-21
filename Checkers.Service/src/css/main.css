@@ -19,7 +19,7 @@
     fill: #d66b1d;
 }
 
-div#turnIndicator {
+div#gameStatusIndicator {
     width: 100%;
     text-align: center;
     height: 40px;

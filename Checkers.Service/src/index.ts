@@ -32,6 +32,8 @@ let validMoveIndicators = new Array<SVGRectElement>();
 let selectedPieceIndicator: SVGRectElement;
 selectedPieceIndicator = null;
 let service = new Service('.');
+let winner: Color;
+winner = null;
 
 function ClearIndicators() {
     while (validMoveIndicators.length > 0) {
@@ -100,12 +102,20 @@ function UpdateGameState(game: ServiceGame) {
     (<HTMLInputElement>document.getElementById("gameIdInput")).value = gameId;
 
     for (let i = currentMove; i < game.moves.length; i++) {
-        let from = FromLocationString(game.moves[i].from as string);
-        let to = FromLocationString(game.moves[i].to as string);
+        let from = FromLocationString(game.moves[i].from);
+        let to = FromLocationString(game.moves[i].to);
 
         let move = new Move(from[0], from[1], to[0], to[1]);
         board.ApplyMove(move); // TODO: Animate
         currentMove++;
+    }
+
+    winner = game.winner;
+
+    if (winner) {
+        document.getElementById('gameStatusIndicator').innerText = 
+            (game.winner == Color.Red ? 'White' : 'Black') + ' Wins!'
+        return;
     }
 
     if (game.currentPlayer == userColor) {
@@ -132,7 +142,7 @@ function UpdateGameState(game: ServiceGame) {
         window.setTimeout(PollGame, 500);
     }
 
-    document.getElementById("turnIndicator").innerText =
+    document.getElementById("gameStatusIndicator").innerText =
         (game.currentPlayer == Color.Red ? "White" : "Black") + "'s Turn";
 }
 
@@ -163,7 +173,11 @@ function IsValidMove(x: number, y: number): boolean {
     return false;
 }
 
-function OnClick(event : MouseEvent) {
+function OnClick(event: MouseEvent) {
+    if (winner) {
+        return;
+    }
+
     let x = Math.floor(event.offsetX / BOARD_SQUARE);
     let y = Math.floor(event.offsetY / BOARD_SQUARE);
 
@@ -186,38 +200,21 @@ function OnClick(event : MouseEvent) {
                 let move = new Move(selectedPiece[0], selectedPiece[1], x, y);
                 ClearIndicators();
                 userState = UserState.Processing;
-                fetch(
-                    './move',
-                    {
-                        method: 'post',
-                        headers: {
-                            'content-type': 'application/json'
+                service
+                    .move(
+                        new ServiceMove(
+                            LocationString(move.fromX, move.fromY),
+                            LocationString(move.toX, move.toY),
+                            userColor),
+                        gameId)
+                    .then(
+                        function onMoveSuccess(game) {
+                            UpdateGameState(game);
                         },
-                        body: JSON.stringify({
-                            'gameId': gameId,
-                            'move': {
-                                'from': LocationString(move.fromX, move.fromY),
-                                'to': LocationString(move.toX, move.toY),
-                                'color': userColor
-                            }
-                        })
-                    }).then(
-                        async function onSuccess(response) {
-                            if (response.ok) {
-                                let json = await response.json();
-                                UpdateGameState(json);
-                            } else {
-                                // TODO: Show error
-                                userState = UserState.Ready;
-                            }
-                        },
-                        function onFailure(err) {
+                        function onMoveFailure(err) {
                             // TODO: Show error
                             userState = UserState.Ready;
                         });
-
-                // TODO: Check for multijump
-                // TODO: Call moveservice
             }
         }
     }

@@ -1,14 +1,5 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 import { Color, Move, Board } from "./checkers";
-import { Service } from "./service";
+import { ServiceMove, Service } from "./service";
 import "./css/main.css";
 const BOARD_SQUARE = 75;
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -39,6 +30,8 @@ let validMoveIndicators = new Array();
 let selectedPieceIndicator;
 selectedPieceIndicator = null;
 let service = new Service('.');
+let winner;
+winner = null;
 function ClearIndicators() {
     while (validMoveIndicators.length > 0) {
         let vmi = validMoveIndicators.pop();
@@ -94,6 +87,12 @@ function UpdateGameState(game) {
         board.ApplyMove(move); // TODO: Animate
         currentMove++;
     }
+    winner = game.winner;
+    if (winner) {
+        document.getElementById('gameStatusIndicator').innerText =
+            (game.winner == Color.Red ? 'White' : 'Black') + ' Wins!';
+        return;
+    }
     if (game.currentPlayer == userColor) {
         userState = UserState.Ready;
         validMovesByPiece = new Map();
@@ -113,7 +112,7 @@ function UpdateGameState(game) {
         userState = UserState.OtherPlayerMove;
         window.setTimeout(PollGame, 500);
     }
-    document.getElementById("turnIndicator").innerText =
+    document.getElementById("gameStatusIndicator").innerText =
         (game.currentPlayer == Color.Red ? "White" : "Black") + "'s Turn";
 }
 function LocationString(x, y) {
@@ -137,6 +136,9 @@ function IsValidMove(x, y) {
     return false;
 }
 function OnClick(event) {
+    if (winner) {
+        return;
+    }
     let x = Math.floor(event.offsetX / BOARD_SQUARE);
     let y = Math.floor(event.offsetY / BOARD_SQUARE);
     switch (userState) {
@@ -159,36 +161,14 @@ function OnClick(event) {
                 let move = new Move(selectedPiece[0], selectedPiece[1], x, y);
                 ClearIndicators();
                 userState = UserState.Processing;
-                fetch('./move', {
-                    method: 'post',
-                    headers: {
-                        'content-type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        'gameId': gameId,
-                        'move': {
-                            'from': LocationString(move.fromX, move.fromY),
-                            'to': LocationString(move.toX, move.toY),
-                            'color': userColor
-                        }
-                    })
-                }).then(function onSuccess(response) {
-                    return __awaiter(this, void 0, void 0, function* () {
-                        if (response.ok) {
-                            let json = yield response.json();
-                            UpdateGameState(json);
-                        }
-                        else {
-                            // TODO: Show error
-                            userState = UserState.Ready;
-                        }
-                    });
-                }, function onFailure(err) {
+                service
+                    .move(new ServiceMove(LocationString(move.fromX, move.fromY), LocationString(move.toX, move.toY), userColor), gameId)
+                    .then(function onMoveSuccess(game) {
+                    UpdateGameState(game);
+                }, function onMoveFailure(err) {
                     // TODO: Show error
                     userState = UserState.Ready;
                 });
-                // TODO: Check for multijump
-                // TODO: Call moveservice
             }
         }
     }

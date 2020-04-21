@@ -8,15 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 export class ServiceMove {
-    constructor(from, to, color, gameId) {
+    constructor(from, to, color) {
         this.from = from;
         this.to = to;
         this.color = color;
-        this.gameId = gameId;
     }
 }
+class ServiceMoveContainer {
+    constructor(move, gameId) {
+        this.move = move;
+        this.gameId = gameId;
+    }
+    ;
+}
 export class ServiceGame {
-    constructor(id, redName, blackName, startTime, moves, currentPlayer, validMoves, activePiece) {
+    constructor(id, redName, blackName, startTime, moves, currentPlayer, validMoves, activePiece, winner) {
         this.id = id;
         this.redName = redName;
         this.blackName = blackName;
@@ -25,6 +31,7 @@ export class ServiceGame {
         this.currentPlayer = currentPlayer;
         this.validMoves = validMoves;
         this.activePiece = activePiece;
+        this.winner = winner;
     }
 }
 export class Service {
@@ -66,13 +73,14 @@ export class Service {
     create() {
         return this.createOrGetGame(`${this.url}/creategame`, 'Failed to create game');
     }
-    move(move) {
-        fetch(`${this.url}/move`, {
+    move(move, gameId) {
+        let requestBody = new ServiceMoveContainer(move, gameId);
+        return fetch(`${this.url}/move`, {
             method: 'post',
             headers: {
                 'content-type': 'application/json'
             },
-            body: JSON.stringify(move)
+            body: JSON.stringify(requestBody)
         })
             .then(function onSuccess(response) {
             return __awaiter(this, void 0, void 0, function* () {
