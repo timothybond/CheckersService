@@ -1,4 +1,5 @@
 ﻿import { Color } from "./checkers";
+import * as signalR from "@microsoft/signalr";
 
 export class ServiceMove {
     constructor(public readonly from: string, public readonly to: string, public readonly color: Color) {
@@ -23,78 +24,37 @@ export class ServiceGame {
     }
 }
 
+export interface UpdateFunction {
+    (game: ServiceGame): void;
+}
+
+export interface ErrorFunction {
+    (error: string): void;
+}
+
 export class Service {
-    constructor(public readonly url = ".") { }
+    connection: signalR.HubConnection;
 
-    //private async handleResponse(response: Response, errorPrefix: string) : Promise<ServiceGame>{
-    //    if (response.ok) {
-    //        let json = await response.json();
-    //        let game = json as ServiceGame;
-    //        return Promise.resolve(game);
+    constructor(private updateFunction: UpdateFunction, private errorFunction: ErrorFunction, public readonly url = "./hub") {
+        this.connection = new signalR.HubConnectionBuilder().withUrl(url).build();
 
-    //    } else {
-    //        return Promise.reject<ServiceGame>(`${errorPrefix}: ${response.statusText}`);
-    //    }
-    //}
+        this.connection.on("UpdateClient", updateFunction);
+        this.connection.on("SendError", errorFunction);
 
-    //private handleFailure(response: Response, errorPrefix: string) : Promise<ServiceGame>{
-    //    return Promise.reject<ServiceGame>(`${errorPrefix}: ${err}`);
-    //}
-
-    private createOrGetGame(fullUrl: string, errorPrefix: string) : Promise<ServiceGame> {
-        return fetch(fullUrl)
-            .then(
-                async function onGameRetrieved(response) {
-                    if (response.ok) {
-                        let json = await response.json();
-                        let game = json as ServiceGame;
-                        return game;
-
-                    } else {
-                        return Promise.reject<ServiceGame>(`${errorPrefix}: ${response.statusText}`);
-                    }
-                },
-                function onFailure(err) {
-                    return Promise.reject<ServiceGame>(`${errorPrefix}: ${err}`);
-                });
+        this.connection.start().catch(err => errorFunction(err));
     }
 
-    get(gameId: string): Promise<ServiceGame>{
-        return this.createOrGetGame(
-            `${this.url}/getgame/${gameId}`,
-            'Failed to retrieve game');
+    createGame() {
+        this.connection.send("StartGame").catch(err => this.errorFunction(err));
     }
 
-    create(): Promise<ServiceGame> {
-        return this.createOrGetGame(
-            `${this.url}/creategame`,
-            'Failed to create game');
+    joinGame(gameId: string) {
+        this.connection.send("JoinGame", gameId).catch(err => this.errorFunction(err));
     }
 
-    move(move: ServiceMove, gameId: string): Promise<ServiceGame> {
+    move(move: ServiceMove, gameId: string) {
         let requestBody = new ServiceMoveContainer(move, gameId);
 
-        return fetch(`${this.url}/move`,
-            {
-                method: 'post',
-                headers: {
-                    'content-type': 'application/json'
-                },
-                body: JSON.stringify(requestBody)
-            })
-            .then(
-                async function onSuccess(response) {
-                    if (response.ok) {
-                        let json = await response.json();
-                        let game = json as ServiceGame;
-                        return game;
-
-                    } else {
-                        return Promise.reject<ServiceGame>(`Move failed: ${response.statusText}`);
-                    }
-                },
-                function onFailure(err) {
-                    return Promise.reject<ServiceGame>(`Move failed: ${err}`);
-                })
+        this.connection.send("Move", requestBody).catch(err => this.errorFunction(err));
     }
 }

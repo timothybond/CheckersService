@@ -27,6 +27,7 @@ namespace Checkers.Service
         {
             services.AddControllers();
             services.AddMemoryCache();
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,6 +50,7 @@ namespace Checkers.Service
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<GameHub>("/hub");
             });
         }
     }

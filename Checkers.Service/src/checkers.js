@@ -114,7 +114,7 @@ export class Board {
             return;
         }
         var pieceShadow = document.createElementNS(SVG_NS, "path");
-        pieceShadow.setAttribute("d", "M7.5,32.5 l0,5 a1,1,0,0,0,60,0 l0,-5");
+        pieceShadow.setAttribute("d", "M7.5,30 l0,5 a1,1,0,0,0,60,0 l0,-5");
         var newCircle = document.createElementNS(SVG_NS, "circle");
         newCircle.setAttribute("r", "40%");
         if (piece.color === Color.White) {
@@ -128,7 +128,7 @@ export class Board {
             pieceShadow.setAttribute("class", "blackpieceshadow");
         }
         newCircle.setAttribute("cx", "50%");
-        newCircle.setAttribute("cy", "32.5");
+        newCircle.setAttribute("cy", "30");
         pieceSvg.appendChild(pieceShadow);
         pieceSvg.appendChild(newCircle);
     }

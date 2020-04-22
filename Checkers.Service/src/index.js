@@ -29,9 +29,12 @@ let validMovesByPiece = new Map();
 let validMoveIndicators = new Array();
 let selectedPieceIndicator;
 selectedPieceIndicator = null;
-let service = new Service('.');
+let service = new Service(UpdateGameState, ShowError);
 let winner;
 winner = null;
+function ShowError(err) {
+    console.error(err);
+}
 function ClearIndicators() {
     while (validMoveIndicators.length > 0) {
         let vmi = validMoveIndicators.pop();
@@ -49,33 +52,39 @@ function ShowJoinGame() {
 function JoinGame() {
     userColor = Color.Black;
     gameId = document.getElementById('gameId').value;
-    service.get(gameId)
-        .then(function onGameJoined(game) {
-        document.getElementById('joinGameSetup').style.display = 'none';
-        document.getElementById('main').style.display = 'inline';
-        gameState = GameState.InProgress;
-        currentMove = 0;
-        board.ResetBoard();
-        UpdateGameState(game);
-    }, function onGameJoinFailed(err) {
-        document.getElementById('startGameFailure').style.display = 'inline';
-        document.getElementById('startGameFailure').innerText = err;
-    });
+    service.joinGame(gameId);
+    //service.get(gameId)
+    //    .then(
+    //        function onGameJoined(game: ServiceGame) {
+    //            document.getElementById('joinGameSetup').style.display = 'none';
+    //            document.getElementById('main').style.display = 'inline';
+    //            gameState = GameState.InProgress;
+    //            currentMove = 0;
+    //            board.ResetBoard();
+    //            UpdateGameState(game);
+    //        },
+    //        function onGameJoinFailed(err) {
+    //            document.getElementById('startGameFailure').style.display = 'inline';
+    //            document.getElementById('startGameFailure').innerText = err;
+    //        });
 }
 function StartGame() {
     document.getElementById('startGameFailure').style.display = 'none';
-    service.create()
-        .then(function onGameCreated(game) {
-        document.getElementById('setup').style.display = 'none';
-        document.getElementById('main').style.display = 'inline';
-        gameState = GameState.InProgress;
-        currentMove = 0;
-        board.ResetBoard();
-        UpdateGameState(game);
-    }, function onGameCreationFailed(err) {
-        document.getElementById('startGameFailure').style.display = 'inline';
-        document.getElementById('startGameFailure').innerText = `Game creation failed: ${err}`;
-    });
+    service.createGame();
+    //service.create()
+    //    .then(
+    //        function onGameCreated(game: ServiceGame) {
+    //            document.getElementById('setup').style.display = 'none';
+    //            document.getElementById('main').style.display = 'inline';
+    //            gameState = GameState.InProgress;
+    //            currentMove = 0;
+    //            board.ResetBoard();
+    //            UpdateGameState(game);
+    //        },
+    //        function onGameCreationFailed(err) {
+    //            document.getElementById('startGameFailure').style.display = 'inline';
+    //            document.getElementById('startGameFailure').innerText = `Game creation failed: ${err}`;
+    //        });
 }
 function UpdateGameState(game) {
     gameId = game.id;
@@ -110,7 +119,7 @@ function UpdateGameState(game) {
     }
     else {
         userState = UserState.OtherPlayerMove;
-        window.setTimeout(PollGame, 500);
+        //window.setTimeout(PollGame, 500);
     }
     document.getElementById("gameStatusIndicator").innerText =
         (game.currentPlayer == Color.White ? "White" : "Black") + "'s Turn";
@@ -162,23 +171,26 @@ function OnClick(event) {
                 ClearIndicators();
                 userState = UserState.Processing;
                 service
-                    .move(new ServiceMove(LocationString(move.fromX, move.fromY), LocationString(move.toX, move.toY), userColor), gameId)
-                    .then(function onMoveSuccess(game) {
-                    UpdateGameState(game);
-                }, function onMoveFailure(err) {
-                    // TODO: Show error
-                    userState = UserState.Ready;
-                });
+                    .move(new ServiceMove(LocationString(move.fromX, move.fromY), LocationString(move.toX, move.toY), userColor), gameId);
+                //.then(
+                //    function onMoveSuccess(game) {
+                //        UpdateGameState(game);
+                //    },
+                //    function onMoveFailure(err) {
+                //        // TODO: Show error
+                //        userState = UserState.Ready;
+                //    });
             }
         }
     }
 }
-function PollGame() {
-    service.get(gameId)
-        .then(function onGameUpdated(game) {
-        UpdateGameState(game);
-    });
-}
+//function PollGame() {
+//    service.get(gameId)
+//        .then(
+//            function onGameUpdated(game: ServiceGame) {
+//                UpdateGameState(game);
+//            });
+//}
 function SelectPiece(x, y) {
     userState = UserState.PieceSelected;
     selectedPiece = [x, y];
