@@ -13,6 +13,12 @@ class ServiceMoveContainer {
     }
     ;
 }
+class ServicePass {
+    constructor(gameId) {
+        this.gameId = gameId;
+    }
+    ;
+}
 export class ServiceGame {
     constructor(id, whiteName, blackName, startTime, moves, currentPlayer, validMoves, activePiece, winner) {
         this.id = id;
@@ -36,18 +42,6 @@ export class Service {
         this.connection.on("SendError", errorFunction);
         this.connection.start().catch(err => errorFunction(err));
     }
-    //private async handleResponse(response: Response, errorPrefix: string) : Promise<ServiceGame>{
-    //    if (response.ok) {
-    //        let json = await response.json();
-    //        let game = json as ServiceGame;
-    //        return Promise.resolve(game);
-    //    } else {
-    //        return Promise.reject<ServiceGame>(`${errorPrefix}: ${response.statusText}`);
-    //    }
-    //}
-    //private handleFailure(response: Response, errorPrefix: string) : Promise<ServiceGame>{
-    //    return Promise.reject<ServiceGame>(`${errorPrefix}: ${err}`);
-    //}
     createGame() {
         this.connection.send("StartGame").catch(err => this.errorFunction(err));
     }
@@ -57,5 +51,9 @@ export class Service {
     move(move, gameId) {
         let requestBody = new ServiceMoveContainer(move, gameId);
         this.connection.send("Move", requestBody).catch(err => this.errorFunction(err));
+    }
+    pass(gameId) {
+        let requestBody = new ServicePass(gameId);
+        this.connection.send("Pass", requestBody).catch(err => this.errorFunction(err));
     }
 }

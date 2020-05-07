@@ -52,48 +52,28 @@ function ShowJoinGame() {
 function JoinGame() {
     userColor = Color.Black;
     gameId = document.getElementById('gameId').value;
+    document.getElementById('startGameFailure').style.display = 'none';
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('joinGameSetup').style.display = 'none';
+    board.ResetBoard();
     service.joinGame(gameId);
-    //service.get(gameId)
-    //    .then(
-    //        function onGameJoined(game: ServiceGame) {
-    //            document.getElementById('joinGameSetup').style.display = 'none';
-    //            document.getElementById('main').style.display = 'inline';
-    //            gameState = GameState.InProgress;
-    //            currentMove = 0;
-    //            board.ResetBoard();
-    //            UpdateGameState(game);
-    //        },
-    //        function onGameJoinFailed(err) {
-    //            document.getElementById('startGameFailure').style.display = 'inline';
-    //            document.getElementById('startGameFailure').innerText = err;
-    //        });
 }
 function StartGame() {
     document.getElementById('startGameFailure').style.display = 'none';
+    document.getElementById('setup').style.display = 'none';
+    board.ResetBoard();
     service.createGame();
-    //service.create()
-    //    .then(
-    //        function onGameCreated(game: ServiceGame) {
-    //            document.getElementById('setup').style.display = 'none';
-    //            document.getElementById('main').style.display = 'inline';
-    //            gameState = GameState.InProgress;
-    //            currentMove = 0;
-    //            board.ResetBoard();
-    //            UpdateGameState(game);
-    //        },
-    //        function onGameCreationFailed(err) {
-    //            document.getElementById('startGameFailure').style.display = 'inline';
-    //            document.getElementById('startGameFailure').innerText = `Game creation failed: ${err}`;
-    //        });
 }
 function UpdateGameState(game) {
     gameId = game.id;
     document.getElementById("gameIdInput").value = gameId;
     for (let i = currentMove; i < game.moves.length; i++) {
-        let from = FromLocationString(game.moves[i].from);
-        let to = FromLocationString(game.moves[i].to);
-        let move = new Move(from[0], from[1], to[0], to[1]);
-        board.ApplyMove(move); // TODO: Animate
+        if (game.moves[i]) {
+            let from = FromLocationString(game.moves[i].from);
+            let to = FromLocationString(game.moves[i].to);
+            let move = new Move(from[0], from[1], to[0], to[1]);
+            board.ApplyMove(move); // TODO: Animate
+        }
         currentMove++;
     }
     winner = game.winner;
@@ -119,8 +99,9 @@ function UpdateGameState(game) {
     }
     else {
         userState = UserState.OtherPlayerMove;
-        //window.setTimeout(PollGame, 500);
     }
+    document.getElementById("passButtonContainer").style.visibility = (game.activePiece) ? "visible" : "hidden";
+    document.getElementById("main").style.display = "inline";
     document.getElementById("gameStatusIndicator").innerText =
         (game.currentPlayer == Color.White ? "White" : "Black") + "'s Turn";
 }
@@ -143,6 +124,9 @@ function IsValidMove(x, y) {
         }
     }
     return false;
+}
+function Pass() {
+    service.pass(gameId);
 }
 function OnClick(event) {
     if (winner) {
@@ -172,25 +156,10 @@ function OnClick(event) {
                 userState = UserState.Processing;
                 service
                     .move(new ServiceMove(LocationString(move.fromX, move.fromY), LocationString(move.toX, move.toY), userColor), gameId);
-                //.then(
-                //    function onMoveSuccess(game) {
-                //        UpdateGameState(game);
-                //    },
-                //    function onMoveFailure(err) {
-                //        // TODO: Show error
-                //        userState = UserState.Ready;
-                //    });
             }
         }
     }
 }
-//function PollGame() {
-//    service.get(gameId)
-//        .then(
-//            function onGameUpdated(game: ServiceGame) {
-//                UpdateGameState(game);
-//            });
-//}
 function SelectPiece(x, y) {
     userState = UserState.PieceSelected;
     selectedPiece = [x, y];
@@ -233,3 +202,4 @@ document.getElementById('displayJoinGameButton').addEventListener('click', ShowJ
 document.getElementById('joinGameButton').addEventListener('click', JoinGame);
 document.getElementById('board').addEventListener('click', OnClick);
 document.getElementById('copyGameIdButton').addEventListener('click', CopyGameId);
+document.getElementById('passButton').addEventListener('click', Pass);

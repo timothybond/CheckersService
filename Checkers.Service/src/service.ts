@@ -10,13 +10,17 @@ class ServiceMoveContainer {
     constructor(public readonly move: ServiceMove, public readonly gameId: string) { };
 }
 
+class ServicePass {
+    constructor(public readonly gameId: string) { };
+}
+
 export class ServiceGame {
     constructor(
         public readonly id: string,
         public readonly whiteName: string,
         public readonly blackName: string,
         public readonly startTime: Date,
-        public readonly moves: Array<ServiceMove>,
+        public readonly moves: Array<ServiceMove | null>,
         public readonly currentPlayer: Color,
         public readonly validMoves: Array<ServiceMove>,
         public readonly activePiece: string,
@@ -56,5 +60,11 @@ export class Service {
         let requestBody = new ServiceMoveContainer(move, gameId);
 
         this.connection.send("Move", requestBody).catch(err => this.errorFunction(err));
+    }
+
+    pass(gameId: string) {
+        let requestBody = new ServicePass(gameId);
+
+        this.connection.send("Pass", requestBody).catch(err => this.errorFunction(err));
     }
 }

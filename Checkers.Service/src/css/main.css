@@ -34,7 +34,7 @@ div#gameStatusIndicator {
 }
 
 .blackpiece {
-    fill: #260702;
+    fill: #300903;
 }
 
 .blackpieceshadow {
@@ -50,7 +50,11 @@ button {
     background-color: rgb(255, 255, 255);
 }
 
-div#setup button {
+div#setup {
+    text-align: center;
+}
+
+div#setup button, div#passButtonContainer button {
     width: 200px;
     height: 40px;
     font-size: 28px;
@@ -65,4 +69,10 @@ input#gameIdInput {
     width: 435px;
     font-family: 'Courier New';
     font-size: 20px;
+}
+
+div#passButtonContainer {
+    visibility: hidden;
+    text-align: center;
+    padding: 20px;
 }

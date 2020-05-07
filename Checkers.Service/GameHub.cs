@@ -16,7 +16,6 @@ namespace Checkers.Service
             this.cache = cache;
         }
 
-
         public async Task StartGame()
         {
             var board = new Board();
@@ -57,6 +56,7 @@ namespace Checkers.Service
             if (!cache.TryGetValue(newMove.GameId, out game))
             {
                 await Clients.Caller.SendError($"Game '{newMove.GameId}' not found.");
+                return;
             }
 
             if (game.Winner != null)
@@ -65,40 +65,80 @@ namespace Checkers.Service
                 return;
             }
 
-            // TODO: Allow other color to go first?
             var board = new Board();
 
             foreach (var gameMove in game.Moves)
             {
-                var move = gameMove.ToMove();
-                board.Apply(move);
-            }
-
-            if (newMove.Move == null)
-            {
-                if (!board.Pass())
+                if (gameMove == null)
                 {
-                    await Clients.Caller.SendError(
-                        "Invalid attempt to pass (i.e., no move received, but player " +
-                        "has not just done a capture with a possible follow-up).");
-                    return;
+                    board.Pass();
+                }
+                else
+                {
+                    var move = gameMove.ToMove();
+                    board.Apply(move);
                 }
             }
-            else
+
+            var moveToApply = newMove.Move.ToMove();
+
+            if (!board.Apply(moveToApply))
             {
-                var moveToApply = newMove.Move.ToMove();
-
-                if (!board.Apply(moveToApply))
-                {
-                    await Clients.Caller.SendError($"Invalid move: {moveToApply}");
-                    return;
-                }
-
-                game.Moves.Add(newMove.Move);
-                game = new Game(board, game);
-
-                cache.Set(game.Id, game);
+                await Clients.Caller.SendError($"Invalid move: {moveToApply}");
+                return;
             }
+
+            game.Moves.Add(newMove.Move);
+            game = new Game(board, game);
+
+            cache.Set(game.Id, game);
+
+            await Clients.Group(game.Id).UpdateClient(game);
+        }
+
+        public async Task Pass(PassMove passMove)
+        {
+            Game game;
+
+            if (!cache.TryGetValue(passMove.GameId, out game))
+            {
+                await Clients.Caller.SendError($"Game '{passMove.GameId}' not found.");
+                return;
+            }
+
+            if (game.Winner != null)
+            {
+                await Clients.Caller.SendError($"Game '{passMove.GameId}' has already ended.");
+                return;
+            }
+
+            var board = new Board();
+
+            foreach (var gameMove in game.Moves)
+            {
+                if (gameMove == null)
+                {
+                    board.Pass();
+                }
+                else
+                {
+                    var move = gameMove.ToMove();
+                    board.Apply(move);
+                }
+            }
+
+            if (!board.Pass())
+            {
+                await Clients.Caller.SendError(
+                    "Invalid attempt to pass (i.e., no move received, but player " +
+                    "has not just done a capture with a possible follow-up).");
+                return;
+            }
+
+            game.Moves.Add(null);
+            game = new Game(board, game);
+
+            cache.Set(game.Id, game);
 
             await Clients.Group(game.Id).UpdateClient(game);
         }

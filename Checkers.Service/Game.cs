@@ -12,7 +12,7 @@ namespace Checkers.Service
             this.StartTime = DateTime.Now;
             this.WhiteName = "?";
             this.BlackName = "?";
-            this.Moves = new List<GameMove>();
+            this.Moves = new List<GameMove?>();
             this.CurrentPlayer = Color.White;
             this.ValidMoves = new List<GameMove>();
             this.ActivePiece = null;
@@ -42,7 +42,7 @@ namespace Checkers.Service
             this.Winner = board.Winner;
 
             this.Id = game.Id;
-            this.Moves = new List<GameMove>(game.Moves);
+            this.Moves = new List<GameMove?>(game.Moves);
             this.WhiteName = game.WhiteName;
             this.BlackName = game.BlackName;
             this.StartTime = game.StartTime;
@@ -56,7 +56,10 @@ namespace Checkers.Service
 
         public DateTime StartTime { get; set; }
 
-        public List<GameMove> Moves { get; set; }
+        /// <summary>
+        /// List of moves so far, or <c>null</c> for a pass.
+        /// </summary>
+        public List<GameMove?> Moves { get; set; }
 
         public Color CurrentPlayer { get; set; }
 

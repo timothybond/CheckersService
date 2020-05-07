@@ -61,11 +61,20 @@ function JoinGame() {
 
     gameId = (<HTMLInputElement>document.getElementById('gameId')).value;
 
+    document.getElementById('startGameFailure').style.display = 'none';
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('joinGameSetup').style.display = 'none';
+
+    board.ResetBoard();
+
     service.joinGame(gameId);
 }
 
 function StartGame() {
     document.getElementById('startGameFailure').style.display = 'none';
+    document.getElementById('setup').style.display = 'none';
+
+    board.ResetBoard();
 
     service.createGame();
 }
@@ -76,11 +85,14 @@ function UpdateGameState(game: ServiceGame) : void {
     (<HTMLInputElement>document.getElementById("gameIdInput")).value = gameId;
 
     for (let i = currentMove; i < game.moves.length; i++) {
-        let from = FromLocationString(game.moves[i].from);
-        let to = FromLocationString(game.moves[i].to);
+        if (game.moves[i]) {
+            let from = FromLocationString(game.moves[i].from);
+            let to = FromLocationString(game.moves[i].to);
 
-        let move = new Move(from[0], from[1], to[0], to[1]);
-        board.ApplyMove(move); // TODO: Animate
+            let move = new Move(from[0], from[1], to[0], to[1]);
+            board.ApplyMove(move); // TODO: Animate
+        }
+
         currentMove++;
     }
 
@@ -114,6 +126,10 @@ function UpdateGameState(game: ServiceGame) : void {
         userState = UserState.OtherPlayerMove;
     }
 
+    document.getElementById("passButtonContainer").style.visibility = (game.activePiece) ? "visible" : "hidden";
+
+    document.getElementById("main").style.display = "inline";
+
     document.getElementById("gameStatusIndicator").innerText =
         (game.currentPlayer == Color.White ? "White" : "Black") + "'s Turn";
 }
@@ -143,6 +159,10 @@ function IsValidMove(x: number, y: number): boolean {
     }
 
     return false;
+}
+
+function Pass() {
+    service.pass(gameId);
 }
 
 function OnClick(event: MouseEvent) {
@@ -236,3 +256,4 @@ document.getElementById('displayJoinGameButton').addEventListener('click', ShowJ
 document.getElementById('joinGameButton').addEventListener('click', JoinGame);
 document.getElementById('board').addEventListener('click', OnClick);
 document.getElementById('copyGameIdButton').addEventListener('click', CopyGameId);
+document.getElementById('passButton').addEventListener('click', Pass);
