@@ -1,14 +1,14 @@
 ﻿namespace Checkers.Service.Model
 {
-    public class GameMove
+    public class Move
     {
-        public GameMove()
+        public Move()
         {
             this.From = string.Empty;
             this.To = string.Empty;
         }
 
-        public GameMove(Move move)
+        public Move(Checkers.Move move)
         {
             this.Color = move.Color;
             this.From = move.From.ToString();
@@ -21,9 +21,9 @@
 
         public string To { get; set; }
 
-        public Move ToMove()
+        public Checkers.Move ToMove()
         {
-            return new Move(this.Color, Location.FromString(this.From), Location.FromString(this.To));
+            return new Checkers.Move(this.Color, Location.FromString(this.From), Location.FromString(this.To));
         }
     }
 }

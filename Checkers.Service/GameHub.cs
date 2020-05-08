@@ -50,7 +50,7 @@ namespace Checkers.Service
             }
         }
 
-        public async Task Move(NewGameMove newMove)
+        public async Task Move(NewMove newMove)
         {
             Game game;
 
@@ -97,7 +97,7 @@ namespace Checkers.Service
             await Clients.Group(game.Id).UpdateClient(game);
         }
 
-        public async Task Pass(PassMove passMove)
+        public async Task Pass(Pass passMove)
         {
             Game game;
 

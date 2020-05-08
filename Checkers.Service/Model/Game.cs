@@ -12,9 +12,9 @@ namespace Checkers.Service.Model
             this.StartTime = DateTime.Now;
             this.WhiteName = "?";
             this.BlackName = "?";
-            this.Moves = new List<GameMove?>();
+            this.Moves = new List<Move?>();
             this.CurrentPlayer = Color.White;
-            this.ValidMoves = new List<GameMove>();
+            this.ValidMoves = new List<Move>();
             this.ActivePiece = null;
         }
 
@@ -25,7 +25,7 @@ namespace Checkers.Service.Model
             this.ValidMoves =
                 board
                     .GetValidMoves()
-                    .Select(m => new GameMove(m))
+                    .Select(m => new Move(m))
                     .ToList();
             this.Winner = board.Winner;
         }
@@ -37,12 +37,12 @@ namespace Checkers.Service.Model
             this.ValidMoves =
                 board
                     .GetValidMoves()
-                    .Select(m => new GameMove(m))
+                    .Select(m => new Move(m))
                     .ToList();
             this.Winner = board.Winner;
 
             this.Id = game.Id;
-            this.Moves = new List<GameMove?>(game.Moves);
+            this.Moves = new List<Move?>(game.Moves);
             this.WhiteName = game.WhiteName;
             this.BlackName = game.BlackName;
             this.StartTime = game.StartTime;
@@ -59,13 +59,13 @@ namespace Checkers.Service.Model
         /// <summary>
         /// List of moves so far, or <c>null</c> for a pass.
         /// </summary>
-        public List<GameMove?> Moves { get; set; }
+        public List<Move?> Moves { get; set; }
 
         public Color CurrentPlayer { get; set; }
 
         public string? ActivePiece { get; set; }
 
-        public List<GameMove> ValidMoves { get; set; }
+        public List<Move> ValidMoves { get; set; }
 
         public Color? Winner { get; set; }
     }

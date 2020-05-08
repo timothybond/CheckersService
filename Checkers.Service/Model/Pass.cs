@@ -1,8 +1,8 @@
 ﻿namespace Checkers.Service.Model
 {
-    public class PassMove
+    public class Pass
     {
-        public PassMove()
+        public Pass()
         {
             this.GameId = string.Empty;
         }
