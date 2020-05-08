@@ -52,34 +52,14 @@ namespace Checkers.Service
 
         public async Task Move(NewMove newMove)
         {
-            Game game;
+            Game? game = await GetCachedGame(newMove.GameId);
 
-            if (!cache.TryGetValue(newMove.GameId, out game))
+            if (game == null)
             {
-                await Clients.Caller.SendError($"Game '{newMove.GameId}' not found.");
                 return;
             }
 
-            if (game.Winner != null)
-            {
-                await Clients.Caller.SendError($"Game '{newMove.GameId}' has already ended.");
-                return;
-            }
-
-            var board = new Board();
-
-            foreach (var gameMove in game.Moves)
-            {
-                if (gameMove == null)
-                {
-                    board.Pass();
-                }
-                else
-                {
-                    var move = gameMove.ToMove();
-                    board.Apply(move);
-                }
-            }
+            var board = GetGameBoard(game);
 
             var moveToApply = newMove.Move.ToMove();
 
@@ -89,30 +69,43 @@ namespace Checkers.Service
                 return;
             }
 
-            game.Moves.Add(newMove.Move);
+            await UpdateGame(game, board, newMove.Move);
+        }
+
+        public async Task Pass(Pass pass)
+        {
+            Game? game = await GetCachedGame(pass.GameId);
+
+            if (game == null)
+            {
+                return;
+            }
+
+            var board = GetGameBoard(game);
+
+            if (!board.Pass())
+            {
+                await Clients.Caller.SendError(
+                    "Invalid attempt to pass (i.e., no move received, but player " +
+                    "has not just done a capture with a possible follow-up).");
+                return;
+            }
+
+            await UpdateGame(game, board, null);
+        }
+
+        private Task UpdateGame(Game game, Board board, Model.Move? move)
+        {
+            game.Moves.Add(move);
             game = new Game(board, game);
 
             cache.Set(game.Id, game);
 
-            await Clients.Group(game.Id).UpdateClient(game);
+            return Clients.Group(game.Id).UpdateClient(game);
         }
 
-        public async Task Pass(Pass passMove)
+        private static Board GetGameBoard(Game game)
         {
-            Game game;
-
-            if (!cache.TryGetValue(passMove.GameId, out game))
-            {
-                await Clients.Caller.SendError($"Game '{passMove.GameId}' not found.");
-                return;
-            }
-
-            if (game.Winner != null)
-            {
-                await Clients.Caller.SendError($"Game '{passMove.GameId}' has already ended.");
-                return;
-            }
-
             var board = new Board();
 
             foreach (var gameMove in game.Moves)
@@ -128,20 +121,30 @@ namespace Checkers.Service
                 }
             }
 
-            if (!board.Pass())
+            return board;
+        }
+
+        /// <summary>
+        /// Gets a cached game, or <c>null</c> if the game does not exist or has already ended.
+        /// 
+        /// On either condition, an error is sent to clients.
+        /// </summary>
+        private async Task<Game?> GetCachedGame(string gameId)
+        {
+
+            if (!cache.TryGetValue(gameId, out Game game))
             {
-                await Clients.Caller.SendError(
-                    "Invalid attempt to pass (i.e., no move received, but player " +
-                    "has not just done a capture with a possible follow-up).");
-                return;
+                await Clients.Caller.SendError($"Game '{gameId}' not found.");
+                return null;
             }
 
-            game.Moves.Add(null);
-            game = new Game(board, game);
+            if (game.Winner != null)
+            {
+                await Clients.Caller.SendError($"Game '{gameId}' has already ended.");
+                return null;
+            }
 
-            cache.Set(game.Id, game);
-
-            await Clients.Group(game.Id).UpdateClient(game);
+            return game;
         }
 
         private string GetUniqueId()
