@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Checkers.Service
+namespace Checkers.Service.Model
 {
     public class Game
     {

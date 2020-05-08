@@ -1,4 +1,4 @@
-﻿namespace Checkers.Service
+﻿namespace Checkers.Service.Model
 {
     public class NewGameMove
     {
